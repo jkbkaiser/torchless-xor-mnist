@@ -83,7 +83,7 @@ def cross_entropy_loss(logits, labels) -> Tuple[np.float64, np.ndarray]:
     m = logits.max(axis=-1, keepdims=True)
     exp_shifted = np.exp(logits - m)
     log_sum_exp = np.log(exp_shifted.sum(axis=-1))
-    loss = np.sum(-np.sum(one_hot * logits, axis=-1) + m.squeeze() + log_sum_exp)
+    loss = np.mean(-np.sum(one_hot * logits, axis=-1) + m.squeeze() + log_sum_exp)
 
     softmax = exp_shifted / np.sum(exp_shifted, axis=-1, keepdims=True)
     grads = softmax - one_hot
@@ -116,6 +116,62 @@ class ReLU(Module):
 
     def zero_grad(self):
         """ReLU does not have any trainable parameters"""
+        pass
+
+
+class Tanh(Module):
+    """Tanh activation function"""
+
+    def forward(self, x):
+        """
+        Forward pass for the Tanh activation function. The Tanh function is
+        defined as follows: $f(x) = (exp(x) - exp(-x)) / (exp(x) + exp(-x))$
+        """
+        self.cached = (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+        return self.cached
+
+    def backward(self, grads):
+        """
+        Backward pass for the Tanh activation function. The Tanh function is
+        defined as follows: $f(x) = (exp(x) - exp(-x)) / (exp(x) + exp(-x))$
+        The derivative with respect to the inputs is thus:
+
+        $$
+        (d y)/(d x) = ((exp(x) + exp(-x)) (exp(x) + exp(-x)) - (exp(x) - exp(-x)) (exp(x) - exp(-x))) / (exp(x) + exp(-x))^2
+        (d y)/(d x) = ((exp(x) + exp(-x))^2  - (exp(x) - exp(-x))^2) / (exp(x) + exp(-x))^2
+        $$
+
+        Now we notice:
+        $$
+        tanh^2(x) = (exp(x) - exp(-x))^2 / (exp(x) + exp(-x))^2
+        $$
+
+        If we subtract this from 1 we get:
+
+        $$
+        1 - tanh^2(x) = 1 - (exp(x) - exp(-x))^2 / (exp(x) + exp(-x))^2
+                      = (exp(x) + exp(-x))^2 / (exp(x) + exp(-x))^2 - (exp(x) - exp(-x))^2 / (exp(x) + exp(-x))^2
+                      = ((exp(x) + exp(-x))^2 - (exp(x) - exp(-x))^2) / (exp(x) + exp(-x))^2
+        $$
+
+        Which is the derivative we were looking for.
+
+        So the derivative is defined as:
+
+        $$
+        (d y)/(d x) = 1 - tanh^2(x)
+        $$
+
+        This means that we can reuse the computed output of the tanh function.
+        """
+        return grads * (1 - self.cached**2)
+
+    def update(self, learning_rate):
+        """Tanh does not have any trainable parameters"""
+        pass
+
+    def zero_grad(self):
+        """Tanh does not have any trainable parameters"""
         pass
 
 
@@ -238,9 +294,9 @@ class LinearLayer(Module):
         (d L) / (d W) = z^T x^T
         $$
         """
-        self.b_grads = grads.sum(axis=0)
+        self.b_grads = grads.sum(axis=0) / grads.shape[0]
         # Because the inputs are a batch they are already transposed.
-        self.w_grads = grads.T @ self.cached_input
+        self.w_grads = grads.T @ self.cached_input / grads.shape[0]
         return grads @ self.w
 
     def update(self, learning_rate: float):
@@ -268,7 +324,7 @@ class MLP(Module):
 
         self.layers = [
             LinearLayer(in_features=in_features, out_features=hidden_features),
-            ReLU(),
+            Tanh(),
             LinearLayer(in_features=hidden_features, out_features=out_features),
         ]
 
@@ -329,6 +385,7 @@ def visualize_decision_boundary(model, figname):
     ax.set_title("Decision Boundary")
 
     plt.savefig(figname)
+    plt.close()
 
 
 if __name__ == "__main__":
@@ -343,11 +400,11 @@ if __name__ == "__main__":
     # Hyperparameters
     num_epochs = 10
     batches_per_epoch = 10
-    batch_size = 16
-    lr = 0.01
+    batch_size = 64
+    lr = 0.5
 
     dl = DataLoader(batch_size)
-    model = MLP(in_features=2, hidden_features=8, out_features=2)
+    model = MLP(in_features=2, hidden_features=4, out_features=2)
 
     losses = []
     accs = []
