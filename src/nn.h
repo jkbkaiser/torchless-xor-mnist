@@ -1,3 +1,4 @@
+#include <memory>
 #include <cmath>
 #include <utility>
 #include <optional>
@@ -8,7 +9,7 @@
 // Base class for all neural network modules
 class Module {
 public:
-    virtual Tensor forward(Tensor input) = 0;
+    virtual Tensor forward(Tensor x) = 0;
     virtual Tensor backward(Tensor grads) = 0;
     virtual void update(double learning_rate) = 0;
     virtual void zero_grad() = 0;
@@ -27,15 +28,15 @@ public:
     Tensor bias_grads;
 
     Linear(int in_features, int out_features)
-        : weight(Tensor::rand({in_features, out_features})),
+        : weight(Tensor::rand({out_features, in_features})),
           bias(Tensor::zeros({out_features})),
           weight_grads(Tensor::zeros({in_features, out_features})),
           bias_grads(Tensor::zeros({out_features}))
     {}
 
-    Tensor forward(Tensor input) override {
-        this->cached_input = input;
-        return input.matmul(weight) + bias;
+    Tensor forward(Tensor x) override {
+        this->cached_input = x;
+        return x.matmul(weight.transpose()) + bias;
     }
 
     Tensor backward(Tensor grad_output) override {
@@ -82,8 +83,8 @@ public:
 // ReLU activation function
 class ReLU : public Module {
 public:
-    Tensor forward(Tensor input) override {
-        return input.map([](double x) { return x > 0 ? x : 0; } );
+    Tensor forward(Tensor x) override {
+        return x.map([](double x) { return x > 0 ? x : 0; } );
     }
 
     Tensor backward(Tensor grads) override {
@@ -115,37 +116,37 @@ public:
 // Simple MLP with one hidden layer and the ReLU activation function
 class MLP : public Module {
 public:
-    Linear l1;
-    Linear l2;
-    ReLU relu{};
+    std::vector<std::unique_ptr<Module>> layers{};
 
-    MLP(int in_features, int hidden_features, int out_features)
-        : l1({in_features, hidden_features}),
-          l2({hidden_features, out_features})
-    {}
+    MLP(int in_features, int hidden_features, int out_features) {
+        layers.push_back(std::make_unique<Linear>(in_features, hidden_features));
+        layers.push_back(std::make_unique<ReLU>());
+        layers.push_back(std::make_unique<Linear>(hidden_features, out_features));
+    }
 
-    Tensor forward(Tensor input) override {
-        Tensor l1_output = l1.forward(input);
-        Tensor hidden = relu.forward(l1_output);
-        Tensor l2_output = l2.forward(hidden);
-        return l2_output;
+    Tensor forward(Tensor x) override {
+        for (auto& layer : layers) {
+            x = layer->forward(x);
+        }
+        return x;
     }
 
     Tensor backward(Tensor grad_output) override {
-        Tensor l2_grad = l2.backward(grad_output);
-        Tensor hidden = relu.backward(l2_grad);
-        Tensor l1_grad = l1.backward(hidden);
-        return l1_grad;
+        // Tensor l2_grad = l2.backward(grad_output);
+        // Tensor hidden = relu.backward(l2_grad);
+        // Tensor l1_grad = l1.backward(hidden);
+        // return l1_grad;
+        return grad_output;
     }
 
     void update(double learning_rate) override {
-        l1.update(learning_rate);
-        l2.update(learning_rate);
+        // l1.update(learning_rate);
+        // l2.update(learning_rate);
     }
 
 
     void zero_grad() override {
-        l1.zero_grad();
-        l2.zero_grad();
+        // l1.zero_grad();
+        // l2.zero_grad();
     }
 };

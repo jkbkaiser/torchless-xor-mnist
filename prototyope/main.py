@@ -91,34 +91,6 @@ def cross_entropy_loss(logits, labels) -> Tuple[np.float64, np.ndarray]:
     return loss, grads
 
 
-class ReLU(Module):
-    """ReLU activation function"""
-
-    def forward(self, x) -> np.ndarray:
-        """
-        Forward pass for the ReLU activation function. The ReLU function is
-        defined as follows: $f(x) = max(x, 0)$
-        """
-        self.cached_input = x
-        return np.maximum(x, 0)
-
-    def backward(self, grads) -> np.ndarray:
-        """
-        Backward pass for the ReLU activation function. The ReLU function is
-        defined as follows: $f(x) = max(x, 0)$. The derivative with respect to
-        the inputs is thus 1 if the input is positive and 0 otherwise.
-        """
-        return grads * (self.cached_input > 0).astype(grads.dtype)
-
-    def update(self, learning_rate):
-        """ReLU does not have any trainable parameters"""
-        pass
-
-    def zero_grad(self):
-        """ReLU does not have any trainable parameters"""
-        pass
-
-
 class Tanh(Module):
     """Tanh activation function"""
 
@@ -226,7 +198,7 @@ class LinearLayer(Module):
         with respect to a single element of b.
 
         $$
-        (d y_k) / (d b_l) = (d) / (d b_l) sum_i W_ik * x_k + b_k
+        (d y_k) / (d b_l) = (d) / (d b_l) sum_i W_ik * x_i + b_k
                           = (d) / (d b_l) b_k
                           = kronecker_delta_kl
         $$
@@ -318,10 +290,6 @@ class MLP(Module):
 
     def __init__(self, in_features, hidden_features, out_features):
         """ Initialize the MLP with the given input and output dimensions """
-        self.in_features = in_features
-        self.hidden_features = hidden_features
-        self.out_features = out_features
-
         self.layers = [
             LinearLayer(in_features=in_features, out_features=hidden_features),
             Tanh(),
