@@ -101,7 +101,6 @@ if __name__ == "__main__":
     ax.spines['top'].set_color('none')
     ax.spines['right'].set_color('none')
 
-    # Prevent datapoints on the legend
     mask = ((inputs[:, 0] < 1) & (inputs[:, 1] < 1))
     zero_preds = inputs[(preds==0).squeeze() & mask]
     one_preds = inputs[(preds==1).squeeze() & mask]
@@ -111,12 +110,4 @@ if __name__ == "__main__":
 
     ax.set_xlabel("Input 1")
     ax.set_ylabel("Input 2")
-
-    # legend = ax.legend(frameon=True, loc="lower right", bbox_to_anchor=(1, 0.05))
-    # frame = legend.get_frame()
-    #
-    # frame.set_facecolor("none")
-    # frame.set_edgecolor("black")
-    # frame.set_linewidth(0.4)
-    # frame.set_alpha(1.0)
     plt.savefig(IMG_DIR / "xor_decision_boundaries.png")

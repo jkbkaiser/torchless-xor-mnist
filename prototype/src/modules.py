@@ -35,7 +35,12 @@ class LinearLayer(Module):
     The bias is initialized to zero.
     """
 
-    def __init__(self, in_features, out_features, rng: np.random.Generator):
+    def __init__(
+        self,
+        in_features: int,
+        out_features: int,
+        rng: np.random.Generator
+    ):
         self.in_features = in_features
         self.out_features = out_features
 
@@ -68,7 +73,7 @@ class Tanh(Module):
     """Tanh activation function"""
 
     def forward(self, x):
-        self.cached = (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+        self.cached = np.tanh(x)
         return self.cached
 
     def backward(self, grads):
@@ -84,10 +89,17 @@ class Tanh(Module):
 class MLP(Module):
     """Multi-layer perceptron"""
 
-    def __init__(self, in_features, hidden_features, out_features, rng: np.random.Generator):
+    def __init__(
+        self,
+        in_features: int,
+        hidden_features: int,
+        out_features: int,
+        rng: np.random.Generator,
+        activation: Module = Tanh(),
+    ):
         self.layers = [
             LinearLayer(in_features=in_features, out_features=hidden_features, rng=rng),
-            Tanh(),
+            activation,
             LinearLayer(in_features=hidden_features, out_features=out_features, rng=rng),
         ]
 
