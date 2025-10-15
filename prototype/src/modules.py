@@ -86,6 +86,22 @@ class Tanh(Module):
         pass
 
 
+class ReLU(Module):
+    """Rectified linear unit activation function"""
+    def forward(self, x):
+        self.cached = np.maximum(x, 0)
+        return self.cached
+
+    def backward(self, grads):
+        return grads * (self.cached > 0)
+
+    def update(self, learning_rate):
+        pass
+
+    def zero_grad(self):
+        pass
+
+
 class MLP(Module):
     """Multi-layer perceptron"""
 
@@ -95,7 +111,7 @@ class MLP(Module):
         hidden_features: int,
         out_features: int,
         rng: np.random.Generator,
-        activation: Module = Tanh(),
+        activation: Module = ReLU(),
     ):
         self.layers = [
             LinearLayer(in_features=in_features, out_features=hidden_features, rng=rng),

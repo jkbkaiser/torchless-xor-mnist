@@ -48,16 +48,14 @@ class MNISTDataLoader:
         else:
             raise ValueError(f"Unknown split: {split}")
 
-        self.images = self.images.reshape((-1, 28, 28))
+        self.images = self.images.reshape((-1, 28, 28)) / 255
         self.labels = self.labels.reshape((-1,))
         self.num_samples = self.images.shape[0]
 
-        # Initialize indices
         self.indices = np.arange(self.num_samples)
         self.ptr = 0
 
     def __iter__(self):
-        # Shuffle indices at the start of each epoch
         self.rng.shuffle(self.indices)
         self.ptr = 0
         return self
@@ -76,7 +74,7 @@ class MNISTDataLoader:
         return x, y
 
     def __len__(self):
-        return self.num_samples // self.batch_size
+        return self.num_samples
 
 
 if __name__ == "__main__":

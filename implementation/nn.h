@@ -1,9 +1,22 @@
 #include <memory>
 #include <cmath>
 #include <utility>
+#include <ranges>
 #include <optional>
 
 #include "tensor.h"
+
+template <typename T>
+std::string to_string(const std::vector<T>& v) {
+    std::ostringstream oss;
+    oss << "[";
+    for (size_t i = 0; i < v.size(); ++i) {
+        oss << v[i];
+        if (i + 1 < v.size()) oss << ", ";
+    }
+    oss << "]";
+    return oss.str();
+}
 
 
 // Base class for all neural network modules
@@ -28,9 +41,9 @@ public:
     Tensor bias_grads;
 
     Linear(int in_features, int out_features)
-        : weight(Tensor::rand({out_features, in_features})),
+        : weight(Tensor::rand({out_features, in_features}) * 2.0 * std::sqrt(6.0 / (in_features + out_features)) - std::sqrt(6.0 / (in_features + out_features))),
           bias(Tensor::zeros({out_features})),
-          weight_grads(Tensor::zeros({in_features, out_features})),
+          weight_grads(Tensor::zeros({out_features, in_features})),
           bias_grads(Tensor::zeros({out_features}))
     {}
 
@@ -40,36 +53,49 @@ public:
     }
 
     Tensor backward(Tensor grad_output) override {
-        if (!cached_input) {
+        if (!this->cached_input) {
             throw std::runtime_error("You must first call the modules before calling `backward`");
         }
 
-        // Bias gradients
-        bias_grads = bias_grads + grad_output;
+        // std::cout << "backward linear" << std::endl;
+        // std::cout << grad_output << std::endl;
 
-        // Weight gradients
-        Tensor go = grad_output.add_dim(0);
-        Tensor ci = cached_input.value().add_dim(1);
+        // std::cout << this->weight.shape << std::endl;
+        // std::cout << this->bias.shape << std::endl;
+        // std::cout << grad_output.shape << std::endl;
 
-        weight_grads = weight_grads + ci.matmul(go);
+        // self.b_grads = grads.sum(axis=0) / grads.shape[0]
+        // self.w_grads = grads.T @ self.cached_input / grads.shape[0]
+        // return grads @ self.w
+
+        int b = grad_output.shape[0];
+
+        // std::cout << b << std::endl;
+        //
+        // std::cout << "1" << std::endl;
+
+        this->bias_grads = grad_output.sum(1) / b;
+        // std::cout << "2" << grad_output.transpose().matmul(this->cached_input.value()) << b << std::endl;
+        this->weight_grads = grad_output.transpose().matmul(this->cached_input.value()) / b;
+        // std::cout << "3" << std::endl;
+
+        // std::cout << "input gradients" << std::endl;
 
         // Input gradients
-        Tensor input_grads = grad_output.matmul(weight.transpose());
+        Tensor input_grads = grad_output.matmul(this->weight);
+        // std::cout << "4" << std::endl;
+
+        // std::cout << "end" << std::endl;
 
         return input_grads;
     }
 
     void update(double learning_rate) override {
-        std::cout << "updating weights" << std::endl;
-
-        std::cout << "grads " << weight_grads << std::endl;
-
-        std::cout << "before" << weight << std::endl;
-
+        // std::cout << "update" << std::endl;
+        // std::cout << weight << std::endl;
+        // std::cout << weight_grads << std::endl;
         weight = weight - (learning_rate * weight_grads);
-
-        std::cout << "after" << weight << std::endl;
-
+        // std::cout << weight << std::endl;
         bias = bias - (learning_rate * bias_grads);
     }
 
@@ -79,39 +105,31 @@ public:
     }
 };
 
-
 // ReLU activation function
 class ReLU : public Module {
 public:
+    std::optional<Tensor> cached;
+
     Tensor forward(Tensor x) override {
-        return x.map([](double x) { return x > 0 ? x : 0; } );
+        cached = x.map([](double x) { return x > 0 ? x : 0; });
+        return cached.value();
     }
 
     Tensor backward(Tensor grads) override {
-        return grads.map([](double x) { return x > 0 ? 1 : 0; } );
+        if (!cached) {
+            throw std::runtime_error("You must first call forward before calling backward");
+        }
+        // Element-wise multiplication: grads * (cached > 0)
+        Tensor result(grads.shape);
+        for (size_t i = 0; i < grads.data.size(); ++i) {
+            result.data[i] = grads.data[i] * (cached.value().data[i] > 0 ? 1.0 : 0.0);
+        }
+        return result;
     }
 
     void update(double learning_rate) override {}
     void zero_grad() override {}
 };
-
-
-// Combines softmax computation with cross entropy loss
-class CrossEntropyLoss {
-public:
-    std::pair<double, Tensor> operator()(const Tensor& pred, const Tensor& label) const {
-        double m = pred.max().item();
-        Tensor shifted = pred - m;
-        Tensor exp_shifted = shifted.exp();
-        double log_sum_exp = std::log(exp_shifted.sum().item());
-
-        double loss = -(label.dot(pred)).item() + m + log_sum_exp;
-        Tensor softmax = exp_shifted / exp_shifted.sum();
-        Tensor grad = softmax - label;
-        return {loss, grad};
-    }
-};
-
 
 // Simple MLP with one hidden layer and the ReLU activation function
 class MLP : public Module {
@@ -132,21 +150,24 @@ public:
     }
 
     Tensor backward(Tensor grad_output) override {
-        // Tensor l2_grad = l2.backward(grad_output);
-        // Tensor hidden = relu.backward(l2_grad);
-        // Tensor l1_grad = l1.backward(hidden);
-        // return l1_grad;
+        for (int i = layers.size() - 1; i >= 0; --i) {
+            // std::cout << "\nblayer " << i << std::endl;
+            // std::cout << "---" << std::endl;
+            grad_output = layers[i]->backward(grad_output);
+            // std::cout << "f" << std::endl;
+        }
         return grad_output;
     }
 
     void update(double learning_rate) override {
-        // l1.update(learning_rate);
-        // l2.update(learning_rate);
+        for (auto& layer : layers) {
+            layer->update(learning_rate);
+        }
     }
 
-
     void zero_grad() override {
-        // l1.zero_grad();
-        // l2.zero_grad();
+        for (auto& layer : layers) {
+            layer->zero_grad();
+        }
     }
 };

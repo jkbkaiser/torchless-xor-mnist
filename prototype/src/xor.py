@@ -17,14 +17,14 @@ if __name__ == "__main__":
         IMG_DIR.mkdir(parents=True)
 
     noise_std = 0.1
-    num_epochs = 1000
+    num_epochs = 100
     batches_per_epoch = 10
     batch_size = 64
     lr = 0.05
     rng = default_rng(seed=3)
 
     dl = XORDataLoader(batch_size, noise_std, rng)
-    model = MLP(in_features=2, hidden_features=4, out_features=1, rng=rng)
+    model = MLP(in_features=2, hidden_features=10, out_features=1, rng=rng)
 
     losses = []
     accs = []
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         losses.append(avg_loss)
         accs.append(avg_acc)
 
-        print(f"Epoch {epoch} {avg_acc=} {avg_loss=}")
+        print(f"Epoch {epoch:>3} {avg_acc=:.4f} {avg_loss=:.4f}")
 
         if epoch > 0 and abs(losses[-1] - losses[-2]) < 1e-5:
             break
