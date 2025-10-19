@@ -81,6 +81,14 @@ Tensor Tensor::from_vec(const std::vector<std::vector<double>> &vec) {
     return t;
 }
 
+Tensor Tensor::from_vec(const std::vector<double> &vec, const std::vector<int> &shape_) {
+    Tensor t(shape_);
+
+    t.data = vec;
+
+    return t;
+}
+
 Tensor Tensor::from_vec(const std::vector<double> &vec) {
     Tensor t({(int)vec.size()});
 
@@ -408,6 +416,20 @@ Tensor Tensor::operator+(Tensor other) const {
         auto idx2 = broadcast_idx(idx, other.shape);
 
         out.at(idx) = this->at(idx1) + other.at(idx2);
+    }
+
+    return out;
+}
+
+Tensor Tensor::operator*(Tensor other) const {
+    auto out_shape = broadcast_shape(this->shape, other.shape);
+    Tensor out(out_shape);
+
+    for (auto idx : all_indices(out_shape)) {
+        auto idx1 = broadcast_idx(idx, this->shape);
+        auto idx2 = broadcast_idx(idx, other.shape);
+
+        out.at(idx) = this->at(idx1) * other.at(idx2);
     }
 
     return out;

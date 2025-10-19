@@ -1,72 +1,81 @@
 #include <iomanip>
+#include <string>
 
 #include "dataloaders.h"
 #include "losses.h"
 #include "nn.h"
 #include "tensor.h"
+#include "utils.h"
 
-double is_correct(const Tensor &output, const Tensor &label)
-{
-    double max = output.at({0});
-    int max_idx = 0;
+double is_correct(const Tensor &logits, const Tensor &labels) {
+    const auto &shape = logits.shape;
+    int batch_size = shape[0];
+    int num_classes = shape[1];
+    Tensor flattened_labels = labels.squeeze();
 
-    for (int i = 1; i < output.shape[0]; ++i)
-    {
-        if (output.at({i}) > max)
-        {
-            max = output.at({i});
-            max_idx = i;
+    double correct = 0.0;
+
+    for (int b = 0; b < batch_size; ++b) {
+        double max_val = logits.at({b, 0});
+        int pred_idx = 0;
+        for (int c = 1; c < num_classes; ++c) {
+            double val = logits.at({b, c});
+            if (val > max_val) {
+                max_val = val;
+                pred_idx = c;
+            }
+        }
+
+        int true_idx = static_cast<int>(flattened_labels.at({b}));
+
+        if (pred_idx == true_idx) {
+            correct += 1.0;
         }
     }
 
-    return label.at({max_idx}) == 1.0 ? 1.0 : 0.0;
+    return correct;
 }
 
-int main()
-{
+int main() {
     int num_epochs = 10;
     int batch_size = 64;
-    int batches_per_epoch = 10;
-    double learning_rate = 0.5;
+    double lr = 0.05;
 
-    MNISTDataLoader dl(batch_size, TRAIN);
-    MLP model(2, 4, 2);
+    std::string mnist_dir = "./data/mnist";
+    MNISTDataset train_ds(TRAIN, mnist_dir);
+    Dataloader dl(&train_ds, batch_size);
+
+    MLP model(784, 10, 10);
     CrossEntropyLoss criterion{};
-
-    int iter = 0;
-    int epoch = 0;
 
     std::vector<double> losses;
     std::vector<double> accs;
 
-    for (int epoch = 0; epoch < num_epochs; ++epoch)
-    {
-        int avg_loss = 0;
-        int avg_acc = 0;
+    for (int epoch = 0; epoch < num_epochs; ++epoch) {
+        double avg_loss = 0;
+        double avg_acc = 0;
 
-        for (int i = 0; i < batches_per_epoch; ++i)
-        {
-            auto [x, y] = dl.next();
+        for (auto [x, y] : dl) {
+            x = x / 255.0;
             Tensor logits = model.forward(x);
-            //
-            //     auto [loss, loss_grads] = criterion(logits, y);
-            //
-            //     model.backward(loss_grads);
-            //     model.update(learning_rate);
-            //     model.zero_grad();
-            //
-            //     avg_acc += is_correct(logits, y);
-            //     avg_loss += loss;
+
+            auto [loss, loss_grads] = criterion(logits, y);
+
+            model.zero_grad();
+            model.backward(loss_grads);
+            model.update(lr);
+
+            double acc = is_correct(logits, y);
+            avg_acc += acc;
+            avg_loss += loss;
         }
-        //
-        //   avg_loss /= batches_per_epoch;
-        //   avg_acc /= batches_per_epoch;
-        //
-        //   losses.push_back(avg_loss);
-        //   accs.push_back(avg_acc);
-        //
-        //   std::cout << "Epoch " << std::setw(3) << epoch <<  " avg_acc=" << std::setprecision(4)
-        //   << std::setw(6) << std::left << avg_acc << std::setprecision(4) << std::setw(6) <<
-        //   std::left << " avg_loss=" << avg_loss << std::endl;
+
+        avg_loss /= train_ds.size();
+        avg_acc /= train_ds.size();
+
+        losses.push_back(avg_loss);
+        accs.push_back(avg_acc);
+
+        log_epoch(epoch, avg_loss, avg_acc);
     }
 }

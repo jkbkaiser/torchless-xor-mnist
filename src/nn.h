@@ -1,3 +1,6 @@
+#ifndef NN_H
+#define NN_H
+
 #include <cmath>
 #include <memory>
 #include <optional>
@@ -171,3 +174,5 @@ class MLP : public Module {
         }
     }
 };
+
+#endif

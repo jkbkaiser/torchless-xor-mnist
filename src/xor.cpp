@@ -3,6 +3,7 @@
 #include "dataloaders.h"
 #include "losses.h"
 #include "nn.h"
+#include "utils.h"
 
 Tensor sigmoid(const Tensor &x) { return 1 / (1 + (-x).exp()); }
 
@@ -12,7 +13,7 @@ int main() {
     double lr = 0.05;
     double noise_std = 0.1;
 
-    XORDataSet ds(1000, noise_std);
+    XORDataset ds(batch_size * 10, noise_std);
     Dataloader dl(&ds, batch_size);
 
     MLP model(2, 10, 1);
@@ -46,7 +47,6 @@ int main() {
         losses.push_back(avg_loss);
         accs.push_back(avg_acc);
 
-        std::cout << "Epoch " << std::setw(3) << epoch << " avg_acc=" << std::fixed
-                  << std::setprecision(4) << avg_acc << " avg_loss=" << avg_loss << std::endl;
+        log_epoch(epoch, avg_loss, avg_acc);
     }
 }

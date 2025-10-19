@@ -1,2 +1,11 @@
+/data
+/build
+
+*.o
+xor
+mnist
+tests
+*.pyc
+.venv/
+/__pycache__
 *.png
-/mnist

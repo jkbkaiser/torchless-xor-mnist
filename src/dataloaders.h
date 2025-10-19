@@ -1,6 +1,14 @@
+#ifndef DATALOADERS_H
+#define DATALOADERS_H
+
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <iterator>
+#include <optional>
 #include <random>
+#include <string>
 #include <vector>
 
 #include "tensor.h"
@@ -10,29 +18,134 @@ enum Split { TRAIN, TEST };
 class Dataset {
   public:
     virtual ~Dataset() = default;
-    virtual std::pair<Tensor, Tensor> sample(size_t idx) const = 0;
+    virtual std::pair<std::vector<double>, double> sample(size_t idx) const = 0;
     virtual size_t size() const = 0;
 };
 
-class XORDataSet : public Dataset {
+class XORDataset : public Dataset {
   private:
     size_t num_samples_;
     double noise_std_;
 
+    mutable std::mt19937 gen_;
+    mutable std::uniform_real_distribution<double> dist_;
+
   public:
-    XORDataSet(size_t num_samples, double noise_std)
-        : num_samples_(num_samples), noise_std_(noise_std) {}
+    XORDataset(size_t num_samples, double noise_std, std::mt19937::result_type seed = 0)
+        : num_samples_(num_samples), noise_std_(noise_std), gen_(seed), dist_(0.0, 1.0) {}
 
-    std::pair<Tensor, Tensor> sample(size_t idx) const {
-        // This can be improved
-        Tensor a = Tensor::randint(0, 2, {1});
-        Tensor b = Tensor::randint(0, 2, {1});
+    std::pair<std::vector<double>, double> sample(size_t idx) const {
+        double a = dist_(gen_) < 0.5 ? 0.0 : 1.0;
+        double b = dist_(gen_) < 0.5 ? 0.0 : 1.0;
 
-        Tensor y = a ^ b;
-        Tensor x = stack({a, b}, 1).squeeze();
-        Tensor noise = Tensor::rand(x.shape) * this->noise_std_;
+        double y = static_cast<int>(a) ^ static_cast<int>(b);
 
-        return {x + noise, y};
+        double noise_a = dist_(gen_) * noise_std_;
+        double noise_b = dist_(gen_) * noise_std_;
+
+        return {{a + noise_a, b + noise_b}, y};
+    }
+
+    size_t size() const { return this->num_samples_; }
+};
+
+uint32_t read_be_uint32(std::ifstream &fs) {
+    uint8_t bytes[4];
+    fs.read(reinterpret_cast<char *>(bytes), 4);
+
+    // Convert big endian to little endian
+    uint32_t result = (uint32_t(bytes[0]) << 24) | (uint32_t(bytes[1]) << 16) |
+                      (uint32_t(bytes[2]) << 8) | (uint32_t(bytes[3]));
+
+    return result;
+}
+
+std::vector<std::vector<double>> load_images(const std::filesystem::path &idx_file_path) {
+    // The file layout for the IDX format is given in `idx_format.md`.
+    std::ifstream file(idx_file_path, std::ios::binary);
+
+    if (!file) {
+        throw std::runtime_error("Failed to open " + idx_file_path.string());
+    }
+
+    // Skip magic number
+    read_be_uint32(file);
+    uint32_t n_images = read_be_uint32(file);
+    uint32_t n_rows = read_be_uint32(file);
+    uint32_t n_cols = read_be_uint32(file);
+
+    size_t image_size = n_rows * n_cols;
+    std::vector<uint8_t> raw_images(n_images * image_size);
+    file.read(reinterpret_cast<char *>(raw_images.data()), raw_images.size());
+
+    std::vector<double> flat_images(n_images * image_size);
+    std::transform(raw_images.begin(), raw_images.end(), flat_images.begin(),
+                   [](uint8_t x) { return static_cast<double>(x); });
+
+    std::vector<std::vector<double>> images(n_images, std::vector<double>(image_size));
+    for (size_t i = 0; i < n_images; ++i) {
+        std::copy(flat_images.begin() + i * image_size, flat_images.begin() + (i + 1) * image_size,
+                  images[i].begin());
+    }
+
+    return images;
+}
+
+std::vector<double> load_labels(const std::filesystem::path &idx_file_path) {
+    // The file layout for the IDX format is given in `idx_format.md`.
+    std::ifstream file(idx_file_path, std::ios::binary);
+
+    if (!file) {
+        throw std::runtime_error("Failed to open " + idx_file_path.string());
+    }
+
+    // Skip magic number
+    read_be_uint32(file);
+    uint32_t n_labels = read_be_uint32(file);
+
+    std::vector<uint8_t> raw_labels(n_labels);
+    file.read(reinterpret_cast<char *>(raw_labels.data()), raw_labels.size());
+
+    std::vector<double> labels(raw_labels.size());
+    std::transform(raw_labels.begin(), raw_labels.end(), labels.begin(),
+                   [](uint8_t x) { return static_cast<double>(x); });
+
+    return labels;
+}
+
+class MNISTDataset : public Dataset {
+  public:
+    Split split_;
+    std::filesystem::path dir_;
+    int num_samples_;
+
+    std::vector<std::vector<double>> images_;
+    std::vector<double> labels_;
+
+    MNISTDataset(const Split split, const std::string &dir) : split_(split), dir_(dir) {
+        if (split_ == TRAIN) {
+            std::filesystem::path img_file_path = dir_ / "train-images.idx3-ubyte";
+            std::filesystem::path label_file_path = dir_ / "train-labels.idx1-ubyte";
+
+            images_ = load_images(img_file_path);
+            labels_ = load_labels(label_file_path);
+
+            num_samples_ = labels_.size();
+        } else if (split_ == TEST) {
+            std::filesystem::path img_file_path = dir_ / "t10k-images.idx3-ubyte";
+            std::filesystem::path label_file_path = dir_ / "t10k-labels.idx1-ubyte";
+
+            images_ = load_images(img_file_path);
+            labels_ = load_labels(label_file_path);
+
+            num_samples_ = labels_.size();
+        } else {
+            throw std::runtime_error("Split must be TRAIN or TEST.");
+        }
+    }
+
+    std::pair<std::vector<double>, double> sample(size_t idx) const {
+        return {images_[idx], labels_[idx]};
     }
 
     size_t size() const { return this->num_samples_; }
@@ -69,8 +182,8 @@ class Dataloader {
             : ds_(ds), indices_(indices), batch_size_(batch_size), pos_(pos) {}
 
         value_type operator*() const {
-            std::vector<Tensor> xs{};
-            std::vector<Tensor> ys{};
+            std::vector<std::vector<double>> xs{};
+            std::vector<double> ys{};
             size_t end = std::min(pos_ + batch_size_, indices_->size());
 
             for (size_t i = pos_; i < end; ++i) {
@@ -80,7 +193,7 @@ class Dataloader {
                 ys.push_back(y);
             }
 
-            return {stack(xs, 0), stack(ys, 0)};
+            return {Tensor::from_vec(xs), Tensor::from_vec(ys).add_dim(1)};
         }
 
         Iterator &operator++() {
@@ -99,28 +212,4 @@ class Dataloader {
     Iterator end() const { return Iterator(ds_, nullptr, batch_size_, indices_.size()); }
 };
 
-// Reshuffle every begin() call
-// class MNISTDataLoader {
-// public:
-//     std::mt19937 gen;
-//     int batch_size;
-//     Split split;
-//
-//     MNISTDataLoader(int batch_size, Split split) {
-//         std::random_device rd;
-//         this->gen = std::mt19937{ rd() };
-//         this->batch_size = batch_size;
-//         this->split = split;
-//     }
-//
-//     std::pair<Tensor, Tensor> next() {
-//       Tensor a = Tensor::randint(0, 2, {this->batch_size});
-//       Tensor b = Tensor::randint(0, 2, {this->batch_size});
-//
-//       Tensor y = a^b;
-//       Tensor x = stack({a, b}, 1);
-//       Tensor noise = Tensor::rand(x.shape) * this->noise_std;
-//
-//       return {x + noise, y};
-//     }
-// };
+#endif
