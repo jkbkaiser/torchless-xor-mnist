@@ -1,5 +1,5 @@
-#ifndef UTILS_H
-#define UTILS_H
+#ifndef TORCHLESS_UTILS_H
+#define TORCHLESS_UTILS_H
 
 #include <iomanip>
 #include <iostream>

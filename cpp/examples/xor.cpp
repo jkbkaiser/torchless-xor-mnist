@@ -1,7 +1,4 @@
-#include <iomanip>
-
-#include <torchless/dataloaders.h>
-#include <torchless/losses.h>
+#include <torchless/data.h>
 #include <torchless/nn.h>
 #include <torchless/tensor.h>
 #include <torchless/utils.h>

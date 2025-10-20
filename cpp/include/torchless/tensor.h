@@ -1,5 +1,5 @@
-#ifndef TENSOR_H
-#define TENSOR_H
+#ifndef TORCHLESS_TENSOR_H
+#define TORCHLESS_TENSOR_H
 
 #include <functional>
 #include <iostream>
