@@ -1,13 +1,39 @@
-# Python-generated files
+# Python
 __pycache__/
-*.py[oc]
-build/
-dist/
-wheels/
-*.egg-info
+*.py[cod]
+*$py.class
+*.so
 
 # Virtual environments
-.venv
+.venv/
+venv/
+ENV/
+env/
 
-# Figures
-figs/
+# Jupyter Notebook
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Data files (if you generate outputs)
+*.npy
+*.npz
+*.pkl
+*.h5
+
+# Plots
+*.png
+*.pdf
+*.svg

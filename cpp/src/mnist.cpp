@@ -40,7 +40,7 @@ int main() {
     int batch_size = 64;
     double lr = 0.05;
 
-    std::string mnist_dir = "./data/mnist";
+    std::string mnist_dir = "./../data/mnist";
     MNISTDataset train_ds(TRAIN, mnist_dir);
     Dataloader dl(&train_ds, batch_size);
 

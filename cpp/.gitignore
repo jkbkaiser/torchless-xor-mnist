@@ -1,0 +1,33 @@
+# Build directory
+build/
+
+# Compiled objects
+*.o
+*.a
+*.so
+*.dylib
+
+# Executables
+xor
+mnist
+tests
+run_tests
+
+# CMake cache
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.cmake
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Clangd
+.cache/
+compile_commands.json
