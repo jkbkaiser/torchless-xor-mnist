@@ -11,7 +11,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 # Library - exposes tensor, nn, dataloaders, losses
 add_library(torchless STATIC
     # Tensor sources
-    src/tensor.cpp
+    src/tensor/tensor.cpp
+
+    # CPU implementations
+    src/tensor/cpu/tensor_factories.cpp
+    src/tensor/cpu/tensor_ops.cpp
+    src/tensor/cpu/tensor_linalg.cpp
+    src/tensor/cpu/tensor_reduction.cpp
+    src/tensor/cpu/tensor_shape.cpp
 
     # NN Sources
     src/nn/modules.cpp

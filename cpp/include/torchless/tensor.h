@@ -29,30 +29,29 @@ class Tensor {
     static Tensor filled(const std::vector<size_t> &shape, double value);
     static Tensor rand(const std::vector<size_t> &shape);
 
-    Tensor transpose() const;
+    Tensor squeeze() const;
+    Tensor add_dim(int dim) const;
+
     Tensor log() const;
     Tensor exp() const;
     Tensor max() const;
     Tensor sum() const;
     Tensor sum(int axis) const;
-    Tensor squeeze() const;
-    Tensor operator-() const;
-    Tensor add_dim(int dim) const;
 
-    // Scalar operators
+    Tensor operator-() const;
+    Tensor operator==(Tensor other) const;
+
     Tensor operator+(double scalar) const;
     Tensor operator-(double scalar) const;
     Tensor operator*(double scalar) const;
     Tensor operator/(double scalar) const;
 
-    Tensor operator==(Tensor other) const;
     Tensor operator+(Tensor other) const;
     Tensor operator*(Tensor other) const;
     Tensor operator-(Tensor other) const;
     Tensor operator/(Tensor other) const;
-    // Tensor operator*(Tensor other) const;
 
-    // Dot product
+    Tensor transpose() const;
     Tensor dot(Tensor other) const;
 
     // Matrix multiplication
