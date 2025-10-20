@@ -18,20 +18,8 @@ A detailed discussion of the mathematical derivations and implementation can be 
 ```
 torchless-xor/
 ├── cpp/                    # C++ implementation (primary)
-│   ├── src/               # Source code
-│   │   ├── tensor.h/cpp   # Tensor operations
-│   │   ├── nn.h           # Neural network modules
-│   │   ├── losses.h       # Loss functions
-│   │   ├── dataloaders.h  # Dataset utilities
-│   │   ├── xor.cpp        # XOR training example
-│   │   ├── mnist.cpp      # MNIST training example
-│   │   └── tests.cpp      # Unit tests
-│   └── CMakeLists.txt     # Build configuration
-│
-├── prototype/             # Python reference implementation
-│   └── src/              # NumPy/PyTorch prototypes
-│
-└── data/                 # Datasets (MNIST)
+├── python/                 # Python reference implementation
+└── data/                   # Datasets (MNIST)
 ```
 
 ## Quick Start
