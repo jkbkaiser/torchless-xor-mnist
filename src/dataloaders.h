@@ -34,7 +34,7 @@ class XORDataset : public Dataset {
     XORDataset(size_t num_samples, double noise_std, std::mt19937::result_type seed = 0)
         : num_samples_(num_samples), noise_std_(noise_std), gen_(seed), dist_(0.0, 1.0) {}
 
-    std::pair<std::vector<double>, double> sample(size_t idx) const {
+    std::pair<std::vector<double>, double> sample(size_t) const {
         double a = dist_(gen_) < 0.5 ? 0.0 : 1.0;
         double b = dist_(gen_) < 0.5 ? 0.0 : 1.0;
 

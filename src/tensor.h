@@ -28,8 +28,6 @@ class Tensor {
     static Tensor ones(const std::vector<size_t> &shape);
     static Tensor filled(const std::vector<size_t> &shape, double value);
     static Tensor rand(const std::vector<size_t> &shape);
-    static Tensor randint(int low, int high, const std::vector<size_t> &shape);
-    static Tensor eye(const std::vector<size_t> &shape);
 
     Tensor transpose() const;
     Tensor log() const;
@@ -52,7 +50,6 @@ class Tensor {
     Tensor operator*(Tensor other) const;
     Tensor operator-(Tensor other) const;
     Tensor operator/(Tensor other) const;
-    Tensor operator^(Tensor other) const;
     // Tensor operator*(Tensor other) const;
 
     // Dot product

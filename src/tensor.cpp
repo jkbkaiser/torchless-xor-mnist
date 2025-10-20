@@ -10,7 +10,7 @@
 
 Tensor Tensor::squeeze() const {
     std::vector<size_t> new_shape;
-    for (int dim : shape) {
+    for (size_t dim : shape) {
         if (dim != 1) {
             new_shape.push_back(dim);
         }
@@ -27,7 +27,7 @@ Tensor Tensor::squeeze() const {
 }
 
 Tensor::Tensor(const std::vector<size_t> &shape_) : shape(shape_) {
-    int size = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
+    size_t size = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
     data.resize(size);
 }
 
@@ -116,23 +116,6 @@ Tensor Tensor::rand(const std::vector<size_t> &shape) {
     return t;
 }
 
-Tensor Tensor::randint(int low, int high, const std::vector<size_t> &shape) {
-    Tensor t(shape);
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_int_distribution<int> d(low, high - 1);
-    std::generate(t.data.begin(), t.data.end(), std::bind(d, gen));
-    return t;
-}
-
-Tensor Tensor::eye(const std::vector<size_t> &shape) {
-    Tensor t = Tensor::zeros(shape);
-    for (size_t i = 0; i < shape[0]; ++i) {
-        t.data[i * shape[1] + i] = 1.0;
-    }
-    return t;
-}
-
 Tensor Tensor::transpose() const {
     if (this->shape.size() != 2) {
         throw std::runtime_error("Transpose is only supported for 2D matrices");
@@ -181,33 +164,6 @@ Tensor Tensor::max() const {
     }
     return Tensor::filled({1}, max);
 }
-
-// Tensor Tensor::max(int dim) const {
-//     // Handle negative dim: convert -1 to last dim index
-//     if (dim < 0) dim = shape.size() + dim;
-//     if (dim != shape.size() - 1) {
-//         throw std::runtime_error("Only max over last dimension (-1) is implemented");
-//     }
-//
-//     int rows = 1;
-//     for (int i = 0; i < dim; ++i) {
-//         rows *= shape[i];
-//     }
-//     int last_dim = shape[dim];
-//
-//     Tensor result({rows});
-//
-//     for (int i = 0; i < rows; ++i) {
-//         double max_val = data[i * last_dim];  // first element in the last dim slice
-//         for (int j = 1; j < last_dim; ++j) {
-//             double val = data[i * last_dim + j];
-//             if (val > max_val) max_val = val;
-//         }
-//         result.at({i}) = max_val;
-//     }
-//
-//     return result;
-// }
 
 Tensor Tensor::log() const {
     Tensor result(this->shape);
@@ -318,12 +274,12 @@ Tensor operator/(double scalar, const Tensor &t) {
 
 std::vector<size_t> broadcast_shape(const std::vector<size_t> &shape1,
                                     const std::vector<size_t> &shape2) {
-    int n1 = shape1.size(), n2 = shape2.size();
-    int n = std::max(n1, n2);
+    size_t n1 = shape1.size(), n2 = shape2.size();
+    size_t n = std::max(n1, n2);
 
     std::vector<size_t> result(n);
 
-    for (int i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; ++i) {
         int dim1 = (i < n - n1) ? 1 : shape1[i - (n - n1)];
         int dim2 = (i < n - n2) ? 1 : shape2[i - (n - n2)];
 
@@ -405,17 +361,6 @@ Tensor Tensor::operator*(Tensor other) const {
 }
 
 Tensor Tensor::operator-(Tensor other) const { return *this + (-1.0 * other); }
-
-Tensor Tensor::operator^(Tensor other) const {
-    auto out_shape = broadcast_shape(this->shape, other.shape);
-    Tensor out(out_shape);
-    for (auto idx : all_indices(out_shape)) {
-        auto idx1 = broadcast_idx(idx, this->shape);
-        auto idx2 = broadcast_idx(idx, other.shape);
-        out.at(idx) = ((int)this->at(idx1)) ^ ((int)other.at(idx2));
-    }
-    return out;
-}
 
 Tensor Tensor::operator/(Tensor other) const {
     auto out_shape = broadcast_shape(this->shape, other.shape);
@@ -562,16 +507,7 @@ Tensor stack(const std::vector<Tensor> &tensors, int axis) {
         } else {
             throw std::runtime_error("Axis must be 0 or 1.");
         }
-    } else if (d == 2) {
-        std::cout << "stacking 2d " << tensors[0].shape.size() << " " << tensors[0].shape[0] << " "
-                  << tensors[0].shape[1] << std::endl;
-
-        if (axis == 0) {
-            std::vector<size_t> shape = {tensors.size(), tensors[0].shape[1]};
-        } else {
-            throw std::runtime_error("Axis must be 0 for 2D tensors.");
-        }
     }
 
-    throw std::runtime_error("Stacking is only supported for tensors with one or two dimensions.");
+    throw std::runtime_error("Stacking is only supported for tensors with one dimensions.");
 }

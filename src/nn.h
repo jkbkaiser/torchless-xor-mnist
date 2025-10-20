@@ -31,7 +31,7 @@ class Module {
     virtual ~Module() = default;
 };
 
-// Implemets a fully connected linear layer
+// Implements a fully connected linear layer
 class Linear : public Module {
   public:
     Tensor weight;
@@ -98,7 +98,7 @@ class ReLU : public Module {
         return result;
     }
 
-    void update(double learning_rate) override {}
+    void update(double) override {}
     void zero_grad() override {}
 };
 

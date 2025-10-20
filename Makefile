@@ -2,7 +2,7 @@
 
 # Compiler settings
 CXX = g++
-CXXFLAGS = -std=c++20 -O2 -Wall
+CXXFLAGS = -std=c++23 -O2 -Wall -Wextra -Wpedantic
 SRC_DIR = src
 BUILD_DIR = build
 
