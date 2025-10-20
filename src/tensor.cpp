@@ -9,7 +9,7 @@
 #include "tensor.h"
 
 Tensor Tensor::squeeze() const {
-    std::vector<int> new_shape;
+    std::vector<size_t> new_shape;
     for (int dim : shape) {
         if (dim != 1) {
             new_shape.push_back(dim);
@@ -26,13 +26,13 @@ Tensor Tensor::squeeze() const {
     return result;
 }
 
-Tensor::Tensor(const std::vector<int> &shape_) : shape(shape_) {
+Tensor::Tensor(const std::vector<size_t> &shape_) : shape(shape_) {
     int size = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
     data.resize(size);
 }
 
 void print_recursive(std::ostream &os, const std::vector<double> &data,
-                     const std::vector<int> &shape, int dim, int offset, int &rows,
+                     const std::vector<size_t> &shape, int dim, int offset, int &rows,
                      int &dotted_rows, const std::string &indent = "") {
     if (rows == 0) {
         if (dotted_rows > 0) {
@@ -42,7 +42,7 @@ void print_recursive(std::ostream &os, const std::vector<double> &data,
         return;
     } else if (dim == (int)shape.size() - 1) {
         os << indent << "[ ";
-        for (int i = 0; i < shape[dim]; ++i) {
+        for (size_t i = 0; i < shape[dim]; ++i) {
             os << data[offset + i] << " ";
         }
         os << "]\n";
@@ -50,10 +50,10 @@ void print_recursive(std::ostream &os, const std::vector<double> &data,
     } else {
         os << indent << "[\n";
         int step = 1;
-        for (int d = dim + 1; d < (int)shape.size(); ++d) {
+        for (size_t d = dim + 1; d < shape.size(); ++d) {
             step *= shape[d];
         }
-        for (int i = 0; i < shape[dim]; ++i) {
+        for (size_t i = 0; i < shape[dim]; ++i) {
             print_recursive(os, data, shape, dim + 1, offset + i * step, rows, dotted_rows,
                             indent + "  ");
         }
@@ -70,10 +70,10 @@ std::ostream &operator<<(std::ostream &os, const Tensor &t) {
 }
 
 Tensor Tensor::from_vec(const std::vector<std::vector<double>> &vec) {
-    Tensor t({(int)vec.size(), (int)vec[0].size()});
+    Tensor t({vec.size(), vec[0].size()});
 
-    for (int i = 0; i < vec.size(); ++i) {
-        for (int j = 0; j < vec[i].size(); ++j) {
+    for (size_t i = 0; i < vec.size(); ++i) {
+        for (size_t j = 0; j < vec[i].size(); ++j) {
             t.at({i, j}) = vec[i][j];
         }
     }
@@ -81,35 +81,33 @@ Tensor Tensor::from_vec(const std::vector<std::vector<double>> &vec) {
     return t;
 }
 
-Tensor Tensor::from_vec(const std::vector<double> &vec, const std::vector<int> &shape_) {
+Tensor Tensor::from_vec(const std::vector<double> &vec, const std::vector<size_t> &shape_) {
     Tensor t(shape_);
-
     t.data = vec;
-
     return t;
 }
 
 Tensor Tensor::from_vec(const std::vector<double> &vec) {
-    Tensor t({(int)vec.size()});
+    Tensor t({vec.size()});
 
-    for (int i = 0; i < vec.size(); ++i) {
+    for (size_t i = 0; i < vec.size(); ++i) {
         t.at({i}) = vec[i];
     }
 
     return t;
 }
 
-Tensor Tensor::filled(const std::vector<int> &shape, double value) {
+Tensor Tensor::filled(const std::vector<size_t> &shape, double value) {
     Tensor t(shape);
     std::fill(t.data.begin(), t.data.end(), value);
     return t;
 }
 
-Tensor Tensor::zeros(const std::vector<int> &shape) { return Tensor::filled(shape, 0.0); }
+Tensor Tensor::zeros(const std::vector<size_t> &shape) { return Tensor::filled(shape, 0.0); }
 
-Tensor Tensor::ones(const std::vector<int> &shape) { return Tensor::filled(shape, 1.0); }
+Tensor Tensor::ones(const std::vector<size_t> &shape) { return Tensor::filled(shape, 1.0); }
 
-Tensor Tensor::rand(const std::vector<int> &shape) {
+Tensor Tensor::rand(const std::vector<size_t> &shape) {
     Tensor t(shape);
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -118,7 +116,7 @@ Tensor Tensor::rand(const std::vector<int> &shape) {
     return t;
 }
 
-Tensor Tensor::randint(int low, int high, const std::vector<int> &shape) {
+Tensor Tensor::randint(int low, int high, const std::vector<size_t> &shape) {
     Tensor t(shape);
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -127,9 +125,9 @@ Tensor Tensor::randint(int low, int high, const std::vector<int> &shape) {
     return t;
 }
 
-Tensor Tensor::eye(const std::vector<int> &shape) {
+Tensor Tensor::eye(const std::vector<size_t> &shape) {
     Tensor t = Tensor::zeros(shape);
-    for (int i = 0; i < shape[0]; ++i) {
+    for (size_t i = 0; i < shape[0]; ++i) {
         t.data[i * shape[1] + i] = 1.0;
     }
     return t;
@@ -142,8 +140,8 @@ Tensor Tensor::transpose() const {
 
     Tensor t = Tensor({this->shape[1], this->shape[0]});
 
-    for (int i = 0; i < this->shape[0]; ++i) {
-        for (int j = 0; j < this->shape[1]; ++j) {
+    for (size_t i = 0; i < this->shape[0]; ++i) {
+        for (size_t j = 0; j < this->shape[1]; ++j) {
             t.at({j, i}) = this->at({i, j});
         }
     }
@@ -164,7 +162,7 @@ Tensor Tensor::map(const std::function<double(double)> &func) const {
     return result;
 }
 
-double &Tensor::at(const std::vector<int> &indices) {
+double &Tensor::at(const std::vector<size_t> &indices) {
     int offset = 0;
     int stride = 1;
     for (int i = (int)shape.size() - 1; i >= 0; --i) {
@@ -176,7 +174,7 @@ double &Tensor::at(const std::vector<int> &indices) {
 
 Tensor Tensor::max() const {
     double max = data[0];
-    for (int i = 1; i < data.size(); ++i) {
+    for (size_t i = 1; i < data.size(); ++i) {
         if (data[i] > max) {
             max = data[i];
         }
@@ -227,7 +225,7 @@ Tensor Tensor::exp() const {
 
 Tensor Tensor::sum() const {
     double sum = 0.0;
-    for (int i = 0; i < data.size(); ++i) {
+    for (size_t i = 0; i < data.size(); ++i) {
         sum += data[i];
     }
     return Tensor::filled({1}, sum);
@@ -239,8 +237,8 @@ Tensor Tensor::sum(int axis) const {
     Tensor t = Tensor({shape[1]});
 
     if (axis == 1) {
-        for (int i = 0; i < shape[0]; ++i) {
-            for (int j = 0; j < shape[1]; ++j) {
+        for (size_t i = 0; i < shape[0]; ++i) {
+            for (size_t j = 0; j < shape[1]; ++j) {
                 t.at({j}) += this->at({i, j});
             }
         }
@@ -251,39 +249,9 @@ Tensor Tensor::sum(int axis) const {
     return t;
 }
 
-// Tensor Tensor::sum(int dim) const {
-//     // Handle negative dim
-//     if (dim < 0) dim = shape.size() + dim;
-//
-//     if (dim != shape.size() - 1) {
-//         throw std::runtime_error("Only sum over last dimension (-1) is implemented");
-//     }
-//
-//     int outer_size = 1;
-//     for (int i = 0; i < dim; ++i) {
-//         outer_size *= shape[i];
-//     }
-//     int last_dim = shape[dim];
-//
-//     // Result shape = input shape without last dimension
-//     std::vector<int> result_shape(shape.begin(), shape.end());
-//     result_shape.erase(result_shape.begin() + dim);
-//     Tensor result(result_shape);
-//
-//     for (int i = 0; i < outer_size; ++i) {
-//         double sum_val = 0.0;
-//         for (int j = 0; j < last_dim; ++j) {
-//             sum_val += data[i * last_dim + j];
-//         }
-//         result.at({i}) = sum_val;
-//     }
-//
-//     return result;
-// }
-
 double Tensor::item() const { return data[0]; }
 
-double Tensor::at(const std::vector<int> &indices) const {
+double Tensor::at(const std::vector<size_t> &indices) const {
     int offset = 0;
     int stride = 1;
     for (int i = (int)shape.size() - 1; i >= 0; --i) {
@@ -301,7 +269,7 @@ Tensor Tensor::operator==(Tensor other) const {
     Tensor result(this->shape);
     result.data = this->data;
 
-    for (int i = 0; i < this->shape[0]; ++i) {
+    for (size_t i = 0; i < this->shape[0]; ++i) {
         result.data[i] = this->data[i] == other.data[i];
     }
 
@@ -348,11 +316,12 @@ Tensor operator/(double scalar, const Tensor &t) {
     });
 }
 
-std::vector<int> broadcast_shape(const std::vector<int> &shape1, const std::vector<int> &shape2) {
+std::vector<size_t> broadcast_shape(const std::vector<size_t> &shape1,
+                                    const std::vector<size_t> &shape2) {
     int n1 = shape1.size(), n2 = shape2.size();
     int n = std::max(n1, n2);
 
-    std::vector<int> result(n);
+    std::vector<size_t> result(n);
 
     for (int i = 0; i < n; ++i) {
         int dim1 = (i < n - n1) ? 1 : shape1[i - (n - n1)];
@@ -367,14 +336,14 @@ std::vector<int> broadcast_shape(const std::vector<int> &shape1, const std::vect
     return result;
 }
 
-std::vector<std::vector<int>> all_indices(const std::vector<int> &shape) {
-    std::vector<std::vector<int>> indices;
+std::vector<std::vector<size_t>> all_indices(const std::vector<size_t> &shape) {
+    std::vector<std::vector<size_t>> indices;
 
     if (shape.empty()) {
         return indices;
     }
 
-    std::vector<int> current(shape.size(), 0);
+    std::vector<size_t> current(shape.size(), 0);
 
     while (true) {
         indices.push_back(current);
@@ -397,10 +366,10 @@ std::vector<std::vector<int>> all_indices(const std::vector<int> &shape) {
     return indices;
 }
 
-std::vector<int> broadcast_idx(std::vector<int> idx, const std::vector<int> &shape) {
-    std::vector<int> broadcasted_idx(shape.size());
+std::vector<size_t> broadcast_idx(std::vector<size_t> idx, const std::vector<size_t> &shape) {
+    std::vector<size_t> broadcasted_idx(shape.size());
 
-    for (int i = 1; i <= shape.size(); ++i) {
+    for (size_t i = 1; i <= shape.size(); ++i) {
         broadcasted_idx[shape.size() - i] = idx[idx.size() - i] % shape[shape.size() - i];
     }
 
@@ -472,7 +441,7 @@ Tensor Tensor::dot(Tensor other) const {
     }
 
     double result = 0.0;
-    for (int i = 0; i < this->shape[0]; ++i) {
+    for (size_t i = 0; i < this->shape[0]; ++i) {
         result += this->at({i}) * other.at({i});
     }
 
@@ -494,10 +463,10 @@ Tensor Tensor::matmul(Tensor other) const {
 
         auto result = Tensor({this->shape[0], other.shape[1]});
 
-        for (int i = 0; i < this->shape[0]; ++i) {
-            for (int j = 0; j < other.shape[1]; ++j) {
+        for (size_t i = 0; i < this->shape[0]; ++i) {
+            for (size_t j = 0; j < other.shape[1]; ++j) {
                 double sum = 0.0;
-                for (int k = 0; k < this->shape[1]; ++k) {
+                for (size_t k = 0; k < this->shape[1]; ++k) {
                     sum += this->at({i, k}) * other.at({k, j});
                 }
                 result.at({i, j}) = sum;
@@ -516,9 +485,9 @@ Tensor Tensor::matmul(Tensor other) const {
 
         auto result = Tensor({this->shape[0]});
 
-        for (int i = 0; i < this->shape[0]; ++i) {
+        for (size_t i = 0; i < this->shape[0]; ++i) {
             double sum = 0.0;
-            for (int k = 0; k < this->shape[1]; ++k) {
+            for (size_t k = 0; k < this->shape[1]; ++k) {
                 sum += this->at({i, k}) * other.at({k});
             }
             result.at({i}) = sum;
@@ -536,9 +505,9 @@ Tensor Tensor::matmul(Tensor other) const {
 
         auto result = Tensor({other.shape[1]});
 
-        for (int j = 0; j < other.shape[1]; ++j) {
+        for (size_t j = 0; j < other.shape[1]; ++j) {
             double sum = 0.0;
-            for (int k = 0; k < this->shape[0]; ++k) {
+            for (size_t k = 0; k < this->shape[0]; ++k) {
                 sum += this->at({k}) * other.at({k, j});
             }
             result.at({j}) = sum;
@@ -559,7 +528,7 @@ Tensor stack(const std::vector<Tensor> &tensors, int axis) {
         return tensors[0];
     }
 
-    for (int i = 0; i < tensors.size(); ++i) {
+    for (size_t i = 0; i < tensors.size(); ++i) {
         if (tensors[i].shape != tensors[0].shape) {
             throw std::runtime_error("Tensors must have the same shape to be stacked.");
         }
@@ -569,23 +538,23 @@ Tensor stack(const std::vector<Tensor> &tensors, int axis) {
 
     if (d == 1) {
         if (axis == 0) {
-            std::vector<int> shape = {(int)tensors.size(), tensors[0].shape[0]};
+            std::vector<size_t> shape = {tensors.size(), tensors[0].shape[0]};
 
             Tensor result = Tensor(shape);
 
-            for (int i = 0; i < tensors[0].shape[0]; ++i) {
-                for (int j = 0; j < tensors.size(); ++j) {
+            for (size_t i = 0; i < tensors[0].shape[0]; ++i) {
+                for (size_t j = 0; j < tensors.size(); ++j) {
                     result.at({j, i}) = tensors[j].at({i});
                 }
             }
             return result;
         } else if (axis == 1) {
-            std::vector<int> shape = {tensors[0].shape[0], (int)tensors.size()};
+            std::vector<size_t> shape = {tensors[0].shape[0], tensors.size()};
 
             Tensor result = Tensor(shape);
 
-            for (int i = 0; i < tensors[0].shape[0]; ++i) {
-                for (int j = 0; j < tensors.size(); ++j) {
+            for (size_t i = 0; i < tensors[0].shape[0]; ++i) {
+                for (size_t j = 0; j < tensors.size(); ++j) {
                     result.at({i, j}) = tensors[j].at({i});
                 }
             }
@@ -598,7 +567,7 @@ Tensor stack(const std::vector<Tensor> &tensors, int axis) {
                   << tensors[0].shape[1] << std::endl;
 
         if (axis == 0) {
-            std::vector<int> shape = {(int)tensors.size(), tensors[0].shape[1]};
+            std::vector<size_t> shape = {tensors.size(), tensors[0].shape[1]};
         } else {
             throw std::runtime_error("Axis must be 0 for 2D tensors.");
         }

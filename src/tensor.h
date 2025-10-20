@@ -7,29 +7,29 @@
 
 class Tensor {
   public:
-    std::vector<int> shape;
+    std::vector<size_t> shape;
     std::vector<double> data;
 
-    Tensor(const std::vector<int> &shape_);
+    Tensor(const std::vector<size_t> &shape_);
 
     friend std::ostream &operator<<(std::ostream &os, const Tensor &t);
 
     Tensor map(const std::function<double(double)> &func) const;
 
-    double &at(const std::vector<int> &indices);
-    double at(const std::vector<int> &indices) const;
+    double &at(const std::vector<size_t> &indices);
+    double at(const std::vector<size_t> &indices) const;
     double item() const;
 
     static Tensor from_vec(const std::vector<double> &vec);
-    static Tensor from_vec(const std::vector<double> &vec, const std::vector<int> &shape_);
+    static Tensor from_vec(const std::vector<double> &vec, const std::vector<size_t> &shape_);
     static Tensor from_vec(const std::vector<std::vector<double>> &vec);
 
-    static Tensor zeros(const std::vector<int> &shape);
-    static Tensor ones(const std::vector<int> &shape);
-    static Tensor filled(const std::vector<int> &shape, double value);
-    static Tensor rand(const std::vector<int> &shape);
-    static Tensor randint(int low, int high, const std::vector<int> &shape);
-    static Tensor eye(const std::vector<int> &shape);
+    static Tensor zeros(const std::vector<size_t> &shape);
+    static Tensor ones(const std::vector<size_t> &shape);
+    static Tensor filled(const std::vector<size_t> &shape, double value);
+    static Tensor rand(const std::vector<size_t> &shape);
+    static Tensor randint(int low, int high, const std::vector<size_t> &shape);
+    static Tensor eye(const std::vector<size_t> &shape);
 
     Tensor transpose() const;
     Tensor log() const;
@@ -82,17 +82,5 @@ Tensor operator*(double scalar, const Tensor &t);
 Tensor operator/(double scalar, const Tensor &t);
 
 Tensor stack(const std::vector<Tensor> &tensors, int axis = 0);
-
-// Printing vecs
-template <typename T> std::ostream &operator<<(std::ostream &os, const std::vector<T> &vec) {
-    os << "(";
-    for (size_t i = 0; i < vec.size(); ++i) {
-        os << vec[i];
-        if (i != vec.size() - 1)
-            os << ", ";
-    }
-    os << ")";
-    return os;
-}
 
 #endif

@@ -41,7 +41,7 @@ class Linear : public Module {
     Tensor weight_grads;
     Tensor bias_grads;
 
-    Linear(int in_features, int out_features)
+    Linear(size_t in_features, size_t out_features)
         : weight(Tensor::rand({out_features, in_features}) * 2.0 *
                      std::sqrt(6.0 / (in_features + out_features)) -
                  std::sqrt(6.0 / (in_features + out_features))),
@@ -58,47 +58,15 @@ class Linear : public Module {
         if (!this->cached_input) {
             throw std::runtime_error("You must first call the modules before calling `backward`");
         }
-
-        // std::cout << "backward linear" << std::endl;
-        // std::cout << grad_output << std::endl;
-
-        // std::cout << this->weight.shape << std::endl;
-        // std::cout << this->bias.shape << std::endl;
-        // std::cout << grad_output.shape << std::endl;
-
-        // self.b_grads = grads.sum(axis=0) / grads.shape[0]
-        // self.w_grads = grads.T @ self.cached_input / grads.shape[0]
-        // return grads @ self.w
-
-        int b = grad_output.shape[0];
-
-        // std::cout << b << std::endl;
-        //
-        // std::cout << "1" << std::endl;
-
+        size_t b = grad_output.shape[0];
         this->bias_grads = grad_output.sum(1) / b;
-        // std::cout << "2" << grad_output.transpose().matmul(this->cached_input.value()) << b <<
-        // std::endl;
         this->weight_grads = grad_output.transpose().matmul(this->cached_input.value()) / b;
-        // std::cout << "3" << std::endl;
-
-        // std::cout << "input gradients" << std::endl;
-
-        // Input gradients
         Tensor input_grads = grad_output.matmul(this->weight);
-        // std::cout << "4" << std::endl;
-
-        // std::cout << "end" << std::endl;
-
         return input_grads;
     }
 
     void update(double learning_rate) override {
-        // std::cout << "update" << std::endl;
-        // std::cout << weight << std::endl;
-        // std::cout << weight_grads << std::endl;
         weight = weight - (learning_rate * weight_grads);
-        // std::cout << weight << std::endl;
         bias = bias - (learning_rate * bias_grads);
     }
 
@@ -154,10 +122,7 @@ class MLP : public Module {
 
     Tensor backward(Tensor grad_output) override {
         for (int i = layers.size() - 1; i >= 0; --i) {
-            // std::cout << "\nblayer " << i << std::endl;
-            // std::cout << "---" << std::endl;
             grad_output = layers[i]->backward(grad_output);
-            // std::cout << "f" << std::endl;
         }
         return grad_output;
     }

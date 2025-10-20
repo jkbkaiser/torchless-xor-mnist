@@ -1,4 +1,3 @@
-#include <iomanip>
 #include <string>
 
 #include "dataloaders.h"
@@ -9,16 +8,16 @@
 
 double is_correct(const Tensor &logits, const Tensor &labels) {
     const auto &shape = logits.shape;
-    int batch_size = shape[0];
-    int num_classes = shape[1];
+    size_t batch_size = shape[0];
+    size_t num_classes = shape[1];
     Tensor flattened_labels = labels.squeeze();
 
     double correct = 0.0;
 
-    for (int b = 0; b < batch_size; ++b) {
+    for (size_t b = 0; b < batch_size; ++b) {
         double max_val = logits.at({b, 0});
         int pred_idx = 0;
-        for (int c = 1; c < num_classes; ++c) {
+        for (size_t c = 1; c < num_classes; ++c) {
             double val = logits.at({b, c});
             if (val > max_val) {
                 max_val = val;
@@ -45,7 +44,7 @@ int main() {
     MNISTDataset train_ds(TRAIN, mnist_dir);
     Dataloader dl(&train_ds, batch_size);
 
-    MLP model(784, 10, 10);
+    MLP model(784, 2, 10);
     CrossEntropyLoss criterion{};
 
     std::vector<double> losses;
