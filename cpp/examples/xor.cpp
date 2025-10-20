@@ -1,9 +1,10 @@
 #include <iomanip>
 
-#include "dataloaders.h"
-#include "losses.h"
-#include "nn.h"
-#include "utils.h"
+#include <torchless/dataloaders.h>
+#include <torchless/losses.h>
+#include <torchless/nn.h>
+#include <torchless/tensor.h>
+#include <torchless/utils.h>
 
 Tensor sigmoid(const Tensor &x) { return 1 / (1 + (-x).exp()); }
 

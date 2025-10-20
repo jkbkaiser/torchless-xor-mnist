@@ -1,10 +1,10 @@
 #include <string>
 
-#include "dataloaders.h"
-#include "losses.h"
-#include "nn.h"
-#include "tensor.h"
-#include "utils.h"
+#include <torchless/dataloaders.h>
+#include <torchless/losses.h>
+#include <torchless/nn.h>
+#include <torchless/tensor.h>
+#include <torchless/utils.h>
 
 double is_correct(const Tensor &logits, const Tensor &labels) {
     const auto &shape = logits.shape;

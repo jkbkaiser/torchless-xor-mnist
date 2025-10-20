@@ -6,7 +6,7 @@
 #include <random>
 #include <vector>
 
-#include "tensor.h"
+#include <torchless/tensor.h>
 
 Tensor Tensor::squeeze() const {
     std::vector<size_t> new_shape;
@@ -16,13 +16,12 @@ Tensor Tensor::squeeze() const {
         }
     }
 
-    // If all dims were 1, new_shape becomes {} (scalar).
     if (new_shape.empty()) {
-        new_shape.push_back(1); // You may decide: [] vs [1] (scalar vs 1D tensor)
+        new_shape.push_back(1);
     }
 
     Tensor result(new_shape);
-    result.data = data; // data layout stays the same
+    result.data = data;
     return result;
 }
 
