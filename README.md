@@ -1,49 +1,108 @@
 # Torchless XOR/MNIST
 
-This project contains an implementation of the Multi-Layer Perceptron from
-scratch with CUDA support. The model is applied to the XOR problem and the MNIST
-dataset. A detailed discussion of the necessary derivations and implementation
-can be found on my [blog](https://jakobkaiser.com/blog/torchless-xor-mnist/).
+A from-scratch neural network library implemented in C++ with CUDA support. This project demonstrates a Multi-Layer Perceptron applied to the XOR problem and MNIST digit classification, built without external ML frameworks.
 
-## Dependencies
+A detailed discussion of the mathematical derivations and implementation can be found on my [blog](https://jakobkaiser.com/blog/torchless-xor-mnist/).
 
-The prototype was developed using Python 3.13.5 and depends on Numpy version
-2.3.2 and Matplotlib version 3.10.5 for visualisations. These can be installed
-using [uv](https://github.com/astral-sh/uv) by runnning the command `uv sync`
-from the python directory.
+## Features
 
-The C++ implementation developed using C++ version 23. It has no dependencies
-except CUDA when you want to use the GPU.
+- **Pure C++23** implementation with no dependencies (except CUDA for GPU support)
+- **Custom tensor library** with broadcasting, matrix operations, and automatic differentiation
+- **Neural network modules**: Linear layers, ReLU activation, MLP
+- **Loss functions**: Cross-entropy and binary cross-entropy
+- **Data loading**: MNIST IDX format parser
+- **Python prototype** for algorithm validation
 
-## Structure
+## Project Structure
 
-## Usage
-
-To run the prototype, go into the `python` directory, download dependencies, and
-you are ready to run the code.
-
-```bash
-cd python
-uv sync
-
-# Now you can execute the training scripts for XOR and MNIST
-python -m src.xor
-python -m src.mnist
+```
+torchless-xor/
+├── cpp/                    # C++ implementation (primary)
+│   ├── src/               # Source code
+│   │   ├── tensor.h/cpp   # Tensor operations
+│   │   ├── nn.h           # Neural network modules
+│   │   ├── losses.h       # Loss functions
+│   │   ├── dataloaders.h  # Dataset utilities
+│   │   ├── xor.cpp        # XOR training example
+│   │   ├── mnist.cpp      # MNIST training example
+│   │   └── tests.cpp      # Unit tests
+│   └── CMakeLists.txt     # Build configuration
+│
+├── prototype/             # Python reference implementation
+│   └── src/              # NumPy/PyTorch prototypes
+│
+└── data/                 # Datasets (MNIST)
 ```
 
-To compile the c++ code, you can the following commands:
+## Quick Start
 
+### C++ Implementation
+
+**Requirements:**
+- C++23 compatible compiler (GCC 12+, Clang 15+)
+- CMake 3.18+
+- CUDA Toolkit (optional, for GPU support)
+
+**Build and run:**
 ```bash
 cd cpp
 mkdir build && cd build
 cmake ..
 make
-```
 
-You can now run the following binaries from the build directory:
-
-```bash
+# Run examples
 ./xor
 ./mnist
-./test
+
+# Run tests
+./tests
 ```
+
+**Build with CUDA:**
+```bash
+cmake -DUSE_CUDA=ON ..
+make
+```
+
+### Python Prototype
+
+**Requirements:**
+- Python 3.13+
+- Dependencies managed via [uv](https://github.com/astral-sh/uv)
+
+**Run:**
+```bash
+cd prototype
+uv sync
+
+# Execute training scripts
+python -m src.xor
+python -m src.mnist
+```
+
+## Examples
+
+### XOR Problem
+Trains a simple MLP to learn the XOR function with noise tolerance.
+
+### MNIST Classification
+Trains a neural network on the MNIST handwritten digit dataset.
+
+## Implementation Highlights
+
+- **Broadcasting**: NumPy-style tensor broadcasting for element-wise operations
+- **Manual backpropagation**: Gradient computation without automatic differentiation
+- **Efficient matrix multiplication**: Optimized matmul with batching support
+- **Data loading**: Custom MNIST IDX binary format parser
+
+## Performance
+
+The C++ implementation achieves competitive performance with minimal dependencies, making it suitable for educational purposes and embedded deployment.
+
+## License
+
+See blog post for details.
+
+## Blog
+
+For a detailed walkthrough of the implementation, including mathematical derivations and design decisions, visit: [jakobkaiser.com/blog/torchless-xor-mnist](https://jakobkaiser.com/blog/torchless-xor-mnist/)
