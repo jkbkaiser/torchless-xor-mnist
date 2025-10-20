@@ -7,11 +7,11 @@ A detailed discussion of the mathematical derivations and implementation can be 
 ## Features
 
 - **Pure C++23** implementation with no dependencies (except CUDA for GPU support)
-- **Custom tensor library** with broadcasting, matrix operations, and automatic differentiation
+- **Custom tensor library** with broadcasting and matrix operations
+- **Manual backpropagation**: Hand-coded gradient computation for all operations
 - **Neural network modules**: Linear layers, ReLU activation, MLP
 - **Loss functions**: Cross-entropy and binary cross-entropy
-- **Data loading**: MNIST IDX format parser
-- **Python prototype** for algorithm validation
+- **Python prototype** for validation
 
 ## Project Structure
 
@@ -87,21 +87,6 @@ Trains a simple MLP to learn the XOR function with noise tolerance.
 
 ### MNIST Classification
 Trains a neural network on the MNIST handwritten digit dataset.
-
-## Implementation Highlights
-
-- **Broadcasting**: NumPy-style tensor broadcasting for element-wise operations
-- **Manual backpropagation**: Gradient computation without automatic differentiation
-- **Efficient matrix multiplication**: Optimized matmul with batching support
-- **Data loading**: Custom MNIST IDX binary format parser
-
-## Performance
-
-The C++ implementation achieves competitive performance with minimal dependencies, making it suitable for educational purposes and embedded deployment.
-
-## License
-
-See blog post for details.
 
 ## Blog
 
