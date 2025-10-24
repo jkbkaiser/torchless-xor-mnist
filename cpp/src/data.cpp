@@ -8,17 +8,17 @@
 #include <torchless/data.h>
 #include <torchless/tensor.h>
 
-XORDataset::XORDataset(size_t num_samples, double noise_std, std::mt19937::result_type seed)
-    : num_samples_(num_samples), noise_std_(noise_std), gen_(seed), dist_(0.0, 1.0) {}
+XORDataset::XORDataset(size_t num_samples, double noise_std, std::mt19937 rng)
+    : num_samples_(num_samples), noise_std_(noise_std), rng_(rng), dist_(0.0, 1.0) {}
 
 std::pair<std::vector<double>, double> XORDataset::sample(size_t /*idx*/) const {
-    double a = dist_(gen_) < 0.5 ? 0.0 : 1.0;
-    double b = dist_(gen_) < 0.5 ? 0.0 : 1.0;
+    double a = dist_(rng_) < 0.5 ? 0.0 : 1.0;
+    double b = dist_(rng_) < 0.5 ? 0.0 : 1.0;
 
     double y = static_cast<int>(a) ^ static_cast<int>(b);
 
-    double noise_a = dist_(gen_) * noise_std_;
-    double noise_b = dist_(gen_) * noise_std_;
+    double noise_a = dist_(rng_) * noise_std_;
+    double noise_b = dist_(rng_) * noise_std_;
 
     return {{a + noise_a, b + noise_b}, y};
 }
@@ -126,8 +126,8 @@ std::pair<std::vector<double>, double> MNISTDataset::sample(size_t idx) const {
 
 size_t MNISTDataset::size() const { return num_samples_; }
 
-Dataloader::Dataloader(const Dataset *ds, size_t batch_size, std::mt19937::result_type seed)
-    : ds_(ds), batch_size_(batch_size), gen_(seed) {
+Dataloader::Dataloader(const Dataset *ds, size_t batch_size, std::mt19937 rng)
+    : ds_(ds), batch_size_(batch_size), rng_(rng) {
     indices_.resize(ds->size());
     std::iota(indices_.begin(), indices_.end(), 0);
 }
@@ -161,7 +161,7 @@ bool Dataloader::Iterator::operator!=(const Dataloader::Iterator &other) const {
 }
 
 Dataloader::Iterator Dataloader::begin() const {
-    std::shuffle(indices_.begin(), indices_.end(), gen_);
+    std::shuffle(indices_.begin(), indices_.end(), rng_);
     return Iterator(ds_, &indices_, batch_size_, 0);
 }
 

@@ -20,7 +20,7 @@ class Dataset {
 
 class XORDataset : public Dataset {
   public:
-    XORDataset(size_t num_samples, double noise_std, std::mt19937::result_type seed = 0);
+    XORDataset(size_t num_samples, double noise_std, std::mt19937 rng);
 
     std::pair<std::vector<double>, double> sample(size_t idx) const override;
     size_t size() const override;
@@ -29,7 +29,7 @@ class XORDataset : public Dataset {
     size_t num_samples_;
     double noise_std_;
 
-    mutable std::mt19937 gen_;
+    mutable std::mt19937 rng_;
     mutable std::uniform_real_distribution<double> dist_;
 };
 
@@ -50,7 +50,7 @@ class MNISTDataset : public Dataset {
 
 class Dataloader {
   public:
-    Dataloader(const Dataset *ds, size_t batch_size, std::mt19937::result_type seed = 0);
+    Dataloader(const Dataset *ds, size_t batch_size, std::mt19937 rng);
 
     class Iterator {
       private:
@@ -80,7 +80,7 @@ class Dataloader {
     size_t batch_size_;
 
     mutable std::vector<size_t> indices_;
-    mutable std::mt19937 gen_;
+    mutable std::mt19937 rng_;
 };
 
 #endif

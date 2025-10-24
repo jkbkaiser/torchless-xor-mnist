@@ -3,8 +3,8 @@
 #include <torchless/nn.h>
 #include <torchless/tensor.h>
 
-Linear::Linear(size_t in_features, size_t out_features)
-    : weight_(Tensor::rand({out_features, in_features}) * 2.0 *
+Linear::Linear(size_t in_features, size_t out_features, std::mt19937 rng)
+    : weight_(Tensor::rand({out_features, in_features}, rng) * 2.0 *
                   std::sqrt(6.0 / (in_features + out_features)) -
               std::sqrt(6.0 / (in_features + out_features))),
       bias_(Tensor::zeros({out_features})),
@@ -58,10 +58,10 @@ Tensor ReLU::backward(Tensor grads) {
 void ReLU::update(double) {}
 void ReLU::zero_grad() {}
 
-MLP::MLP(int in_features, int hidden_features, int out_features) {
-    layers_.push_back(std::make_unique<Linear>(in_features, hidden_features));
+MLP::MLP(int in_features, int hidden_features, int out_features, std::mt19937 rng) {
+    layers_.push_back(std::make_unique<Linear>(in_features, hidden_features, rng));
     layers_.push_back(std::make_unique<ReLU>());
-    layers_.push_back(std::make_unique<Linear>(hidden_features, out_features));
+    layers_.push_back(std::make_unique<Linear>(hidden_features, out_features, rng));
 }
 
 Tensor MLP::forward(Tensor x) {

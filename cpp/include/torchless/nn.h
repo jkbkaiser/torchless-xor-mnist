@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <optional>
+#include <random>
 
 #include <torchless/tensor.h>
 
@@ -23,7 +24,7 @@ class Linear : public Module {
     Tensor weight_grads_;
     Tensor bias_grads_;
 
-    Linear(size_t in_features, size_t out_features);
+    Linear(size_t in_features, size_t out_features, std::mt19937 rng);
 
     Tensor forward(Tensor x) override;
     Tensor backward(Tensor grad_output) override;
@@ -49,7 +50,7 @@ class MLP : public Module {
   public:
     std::vector<std::unique_ptr<Module>> layers_{};
 
-    MLP(int in_features, int hidden_features, int out_features);
+    MLP(int in_features, int hidden_features, int out_features, std::mt19937 rng);
 
     Tensor forward(Tensor x) override;
     Tensor backward(Tensor grad_output) override;

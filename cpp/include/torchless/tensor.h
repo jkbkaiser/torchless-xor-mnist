@@ -3,7 +3,13 @@
 
 #include <functional>
 #include <iostream>
+#include <random>
 #include <vector>
+
+enum class Device {
+    CPU,
+    GPU,
+};
 
 class Tensor {
   public:
@@ -20,6 +26,7 @@ class Tensor {
     double at(const std::vector<size_t> &indices) const;
     double item() const;
 
+    // Make this a constructor
     static Tensor from_vec(const std::vector<double> &vec);
     static Tensor from_vec(const std::vector<double> &vec, const std::vector<size_t> &shape_);
     static Tensor from_vec(const std::vector<std::vector<double>> &vec);
@@ -27,7 +34,7 @@ class Tensor {
     static Tensor zeros(const std::vector<size_t> &shape);
     static Tensor ones(const std::vector<size_t> &shape);
     static Tensor filled(const std::vector<size_t> &shape, double value);
-    static Tensor rand(const std::vector<size_t> &shape);
+    static Tensor rand(const std::vector<size_t> &shape, std::mt19937 rng);
 
     Tensor squeeze() const;
     Tensor add_dim(int dim) const;

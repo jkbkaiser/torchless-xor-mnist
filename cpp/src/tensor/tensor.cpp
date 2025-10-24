@@ -1,3 +1,4 @@
+// Lets use a template for this!!
 #include <algorithm>
 #include <functional>
 #include <iomanip>
@@ -106,12 +107,10 @@ Tensor Tensor::zeros(const std::vector<size_t> &shape) { return Tensor::filled(s
 
 Tensor Tensor::ones(const std::vector<size_t> &shape) { return Tensor::filled(shape, 1.0); }
 
-Tensor Tensor::rand(const std::vector<size_t> &shape) {
+Tensor Tensor::rand(const std::vector<size_t> &shape, std::mt19937 rng) {
     Tensor t(shape);
-    std::random_device rd;
-    std::mt19937 gen(rd());
     std::uniform_real_distribution<double> d(0.0, 1.0);
-    std::generate(t.data.begin(), t.data.end(), std::bind(d, gen));
+    std::generate(t.data.begin(), t.data.end(), std::bind(d, rng));
     return t;
 }
 

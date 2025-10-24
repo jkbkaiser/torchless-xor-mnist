@@ -1,3 +1,5 @@
+#include <random>
+
 #include <torchless/data.h>
 #include <torchless/nn.h>
 #include <torchless/tensor.h>
@@ -6,15 +8,18 @@
 Tensor sigmoid(const Tensor &x) { return 1 / (1 + (-x).exp()); }
 
 int main() {
+    int seed = 0;
     int num_epochs = 100;
     int batch_size = 64;
     double lr = 0.05;
     double noise_std = 0.1;
 
-    XORDataset ds(batch_size * 10, noise_std);
-    Dataloader dl(&ds, batch_size);
+    std::mt19937 rng(seed);
 
-    MLP model(2, 10, 1);
+    XORDataset ds(batch_size * 10, noise_std, rng);
+    Dataloader dl(&ds, batch_size, rng);
+
+    MLP model(2, 10, 1, rng);
     BinaryCrossEntropyLoss criterion{};
 
     std::vector<double> losses;

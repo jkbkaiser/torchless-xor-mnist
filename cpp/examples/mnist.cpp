@@ -35,15 +35,19 @@ double is_correct(const Tensor &logits, const Tensor &labels) {
 }
 
 int main() {
+    int seed = 0;
     int num_epochs = 10;
     int batch_size = 64;
     double lr = 0.05;
 
     std::string mnist_dir = "./../../data/mnist";
-    MNISTDataset train_ds(TRAIN, mnist_dir);
-    Dataloader dl(&train_ds, batch_size);
 
-    MLP model(784, 2, 10);
+    std::mt19937 rng(seed);
+
+    MNISTDataset train_ds(TRAIN, mnist_dir);
+    Dataloader dl(&train_ds, batch_size, rng);
+
+    MLP model(784, 2, 10, rng);
     CrossEntropyLoss criterion{};
 
     std::vector<double> losses;
