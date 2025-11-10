@@ -1,2 +1,5 @@
-- [ ] Add factory methods for GPU && commit
-- [ ] Add functions like log, exp, etc && commi
+- [ ] Add functions like log, exp, etc
+- [ ] Impl operators
+- [ ] Impl linalg functions
+- [ ] Impl MLP
+- [ ] Impl examples with GPU
