@@ -3,14 +3,15 @@
 #include <torchless/nn.h>
 #include <torchless/tensor.h>
 
-std::pair<double, Tensor> CrossEntropyLoss::operator()(const Tensor &logits,
-                                                       const Tensor &labels) const {
+template <Device D>
+std::pair<double, Tensor<D>> CrossEntropyLoss<D>::operator()(const Tensor<D> &logits,
+                                                             const Tensor<D> &labels) const {
     size_t batch_size = logits.shape[0];
     size_t num_classes = logits.shape[1];
     Tensor flattened_labels = labels.squeeze();
 
     double total_loss = 0.0;
-    Tensor grad = Tensor::zeros({batch_size, num_classes});
+    Tensor grad = Tensor<D>::zeros({batch_size, num_classes});
 
     // Compute loss and gradients per sample
     for (size_t i = 0; i < batch_size; ++i) {
@@ -44,8 +45,9 @@ std::pair<double, Tensor> CrossEntropyLoss::operator()(const Tensor &logits,
     return {total_loss / batch_size, grad};
 }
 
-std::pair<double, Tensor> BinaryCrossEntropyLoss::operator()(const Tensor &logits,
-                                                             const Tensor &labels) const {
+template <Device D>
+std::pair<double, Tensor<D>> BinaryCrossEntropyLoss<D>::operator()(const Tensor<D> &logits,
+                                                                   const Tensor<D> &labels) const {
     Tensor clipped_probs =
         logits.map([](double x) { return std::min(std::max(x, 1e-7), 1 - 1e-7); }).squeeze();
     Tensor flattened_labels = labels.squeeze();

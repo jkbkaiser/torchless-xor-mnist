@@ -148,7 +148,7 @@ Dataloader::Iterator::value_type Dataloader::Iterator::operator*() const {
         ys.push_back(y);
     }
 
-    return {Tensor::from_vec(xs), Tensor::from_vec(ys).add_dim(1)};
+    return {Tensor<Device::CPU>(xs), Tensor<Device::CPU>(ys).add_dim(1)};
 }
 
 Dataloader::Iterator &Dataloader::Iterator::operator++() {

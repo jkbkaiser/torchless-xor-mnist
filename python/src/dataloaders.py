@@ -81,8 +81,6 @@ if __name__ == "__main__":
     dl = MNISTDataLoader(batch_size=16, rng=np.random.default_rng(seed=3), split="TRAIN")
     samples, _ = next(iter(dl))
 
-    print(samples.shape)
-
     fig, ax = plt.subplots(4, 4,figsize=(8, 8))
     fig.patch.set_alpha(0.0)
 

@@ -60,7 +60,7 @@ class Dataloader {
         size_t pos_;
 
       public:
-        using value_type = std::pair<Tensor, Tensor>;
+        using value_type = std::pair<Tensor<Device::CPU>, Tensor<Device::CPU>>;
         using difference_type = std::ptrdiff_t;
         using iterator_category = std::forward_iterator_tag;
 

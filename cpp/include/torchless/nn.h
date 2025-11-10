@@ -7,65 +7,65 @@
 
 #include <torchless/tensor.h>
 
-class Module {
+template <Device D> class Module {
   public:
     virtual ~Module() = default;
 
-    virtual Tensor forward(Tensor x) = 0;
-    virtual Tensor backward(Tensor grads) = 0;
+    virtual Tensor<D> forward(Tensor<D> x) = 0;
+    virtual Tensor<D> backward(Tensor<D> grads) = 0;
     virtual void update(double learning_rate) = 0;
     virtual void zero_grad() = 0;
 };
 
-class Linear : public Module {
+template <Device D> class Linear : public Module<D> {
   public:
-    Tensor weight_;
-    Tensor bias_;
-    Tensor weight_grads_;
-    Tensor bias_grads_;
+    Tensor<D> weight_;
+    Tensor<D> bias_;
+    Tensor<D> weight_grads_;
+    Tensor<D> bias_grads_;
 
     Linear(size_t in_features, size_t out_features, std::mt19937 rng);
 
-    Tensor forward(Tensor x) override;
-    Tensor backward(Tensor grad_output) override;
+    Tensor<D> forward(Tensor<D> x) override;
+    Tensor<D> backward(Tensor<D> grad_output) override;
     void update(double learning_rate) override;
     void zero_grad() override;
 
   private:
-    std::optional<Tensor> cached_input_;
+    std::optional<Tensor<D>> cached_input_;
 };
 
-class ReLU : public Module {
+template <Device D> class ReLU : public Module<D> {
   public:
-    Tensor forward(Tensor x) override;
-    Tensor backward(Tensor grads) override;
+    Tensor<D> forward(Tensor<D> x) override;
+    Tensor<D> backward(Tensor<D> grads) override;
     void update(double) override;
     void zero_grad() override;
 
   private:
-    std::optional<Tensor> cached_;
+    std::optional<Tensor<D>> cached_;
 };
 
-class MLP : public Module {
+template <Device D> class MLP : public Module<D> {
   public:
-    std::vector<std::unique_ptr<Module>> layers_{};
+    std::vector<std::unique_ptr<Module<D>>> layers_{};
 
     MLP(int in_features, int hidden_features, int out_features, std::mt19937 rng);
 
-    Tensor forward(Tensor x) override;
-    Tensor backward(Tensor grad_output) override;
+    Tensor<D> forward(Tensor<D> x) override;
+    Tensor<D> backward(Tensor<D> grad_output) override;
     void update(double learning_rate) override;
     void zero_grad() override;
 };
 
-class CrossEntropyLoss {
+template <Device D> class CrossEntropyLoss {
   public:
-    std::pair<double, Tensor> operator()(const Tensor &logits, const Tensor &labels) const;
+    std::pair<double, Tensor<D>> operator()(const Tensor<D> &logits, const Tensor<D> &labels) const;
 };
 
-class BinaryCrossEntropyLoss {
+template <Device D> class BinaryCrossEntropyLoss {
   public:
-    std::pair<double, Tensor> operator()(const Tensor &logits, const Tensor &labels) const;
+    std::pair<double, Tensor<D>> operator()(const Tensor<D> &logits, const Tensor<D> &labels) const;
 };
 
 #endif

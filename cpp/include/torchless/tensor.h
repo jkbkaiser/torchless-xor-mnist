@@ -1,89 +1,56 @@
 #ifndef TORCHLESS_TENSOR_H
 #define TORCHLESS_TENSOR_H
 
-#include <functional>
 #include <iostream>
+#include <ostream>
 #include <random>
+#include <variant>
 #include <vector>
+
+#include <torchless/shape.h>
+#include <torchless/tensor/tensor_base.h>
+#include <torchless/tensor/tensor_cpu.h>
+#include <torchless/tensor/tensor_gpu.h>
 
 enum class Device {
     CPU,
     GPU,
 };
 
+struct EmptyTag {};
+
+using TensorVariant = std::variant<CPUTensor, GPUTensor>;
+
 class Tensor {
   public:
-    std::vector<size_t> shape;
-    std::vector<double> data;
+    Device device_;
+    TensorVariant tensor_;
 
-    Tensor(const std::vector<size_t> &shape_);
+    // Factories
+    Tensor(const std::vector<float> &values, Device device = Device::CPU);
+    Tensor(const std::vector<std::vector<float>> &values, Device device = Device::CPU);
+    static Tensor empty(const Shape &shape, Device device = Device::CPU);
+    static Tensor zeros(const Shape &shape, Device device = Device::CPU);
+    static Tensor ones(const Shape &shape, Device device = Device::CPU);
+    static Tensor filled(const Shape &shape, float value, Device device = Device::CPU);
+    static Tensor rand(const Shape &shape, std::mt19937 rng, Device device = Device::CPU);
 
-    friend std::ostream &operator<<(std::ostream &os, const Tensor &t);
+    float get(const std::vector<size_t> &indices);
+    friend std::ostream &operator<<(std::ostream &os, const CPUTensor &t);
 
-    Tensor map(const std::function<double(double)> &func) const;
+  private:
+    Tensor(const Shape &shape, Device device, EmptyTag);
+    Tensor(const Shape &shape, float value, Device device);
+    Tensor(const Shape &shape, std::mt19937 rng, Device device);
 
-    double &at(const std::vector<size_t> &indices);
-    double at(const std::vector<size_t> &indices) const;
-    double item() const;
-
-    // Make this a constructor
-    static Tensor from_vec(const std::vector<double> &vec);
-    static Tensor from_vec(const std::vector<double> &vec, const std::vector<size_t> &shape_);
-    static Tensor from_vec(const std::vector<std::vector<double>> &vec);
-
-    static Tensor zeros(const std::vector<size_t> &shape);
-    static Tensor ones(const std::vector<size_t> &shape);
-    static Tensor filled(const std::vector<size_t> &shape, double value);
-    static Tensor rand(const std::vector<size_t> &shape, std::mt19937 rng);
-
-    Tensor squeeze() const;
-    Tensor add_dim(int dim) const;
-
-    Tensor log() const;
-    Tensor exp() const;
-    Tensor max() const;
-    Tensor sum() const;
-    Tensor sum(int axis) const;
-
-    Tensor operator-() const;
-    Tensor operator==(Tensor other) const;
-
-    Tensor operator+(double scalar) const;
-    Tensor operator-(double scalar) const;
-    Tensor operator*(double scalar) const;
-    Tensor operator/(double scalar) const;
-
-    Tensor operator+(Tensor other) const;
-    Tensor operator*(Tensor other) const;
-    Tensor operator-(Tensor other) const;
-    Tensor operator/(Tensor other) const;
-
-    Tensor transpose() const;
-    Tensor dot(Tensor other) const;
-
-    // Matrix multiplication
-    // We support the following dimensions:
-    //   [N] * [N]             (dot product)
-    //   [M, N] * [N, K]       (matrix-matrix multiplication)
-    //   [N] * [N, K]          (matrix-vector multiplication)
-    //   [N, K] * [K]          (matrix-vector multiplication)
-    //   [O, M, N] * [L, N, K] (batched matrix-matrix multiplication)
-    //   [O, M, N] * [N, K]    (broadcast batched matrix-matrix multiplication)
-    //   [M, N] * [L, N, K]    (broadcast batched matrix-matrix multiplication)
-    Tensor matmul(Tensor other) const;
-
-    // TODO
-    // Implement all matrix multiplications
-    // Compound operators (+=)
-    // Gradients
+    static TensorVariant tensor_from_data(const std::vector<float> &data, Device device);
+    static TensorVariant tensor_from_data(const std::vector<std::vector<float>> &data,
+                                          Device device);
+    static TensorVariant tensor_from_shape(const Shape &shape, Device device);
+    static TensorVariant filled_tensor(const Shape &shape, float value, Device device);
+    static TensorVariant random_tensor(const Shape &shape, std::mt19937 rng, Device device);
 };
 
-// Scalar operators
-Tensor operator+(double scalar, const Tensor &t);
-Tensor operator-(double scalar, const Tensor &t);
-Tensor operator*(double scalar, const Tensor &t);
-Tensor operator/(double scalar, const Tensor &t);
-
-Tensor stack(const std::vector<Tensor> &tensors, int axis = 0);
+std::ostream &operator<<(std::ostream &os, const Tensor &t);
 
 #endif

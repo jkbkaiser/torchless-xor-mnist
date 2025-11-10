@@ -1,0 +1,2 @@
+- [ ] Add factory methods for GPU && commit
+- [ ] Add functions like log, exp, etc && commi
