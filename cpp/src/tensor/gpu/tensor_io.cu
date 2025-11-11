@@ -1,16 +1,11 @@
-#include <iostream>
-#include <random>
-#include <vector>
-
 #include <torchless/tensor/tensor_cpu.h>
 #include <torchless/tensor/tensor_gpu.h>
 
-CPUTensor toCPU() {
+CPUTensor GPUTensor::toCPU() const {
     CPUTensor t(shape_);
-    cudaMemcpy(t.data, size_ * sizeof(float), cudaMemcpyDeviceToHost);
+    cudaMemcpy(t.data_.data(), data_, size_ * sizeof(float), cudaMemcpyDeviceToHost);
     return t;
 }
-
 
 std::ostream &operator<<(std::ostream &os, const GPUTensor &t) {
     auto cpuT = t.toCPU();

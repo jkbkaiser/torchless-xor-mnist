@@ -1,6 +1,7 @@
 #ifndef TORCHLESS_TENSOR_CPU_H
 #define TORCHLESS_TENSOR_CPU_H
 
+#include <functional>
 #include <ostream>
 #include <random>
 #include <vector>
@@ -21,8 +22,15 @@ class CPUTensor : public BaseTensor {
     static CPUTensor filled(const Shape &shape, float value);
     static CPUTensor rand(const Shape &shape, std::mt19937 &rng);
 
+    // Ops
+    CPUTensor log() const;
+    CPUTensor exp() const;
+
     float get(const std::vector<size_t> &indices);
-    GPUTensor toGPU();
+    GPUTensor toGPU() const;
+
+  private:
+    CPUTensor map(const std::function<float(float)> &func) const;
 };
 
 std::ostream &operator<<(std::ostream &os, const CPUTensor &t);

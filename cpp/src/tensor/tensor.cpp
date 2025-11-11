@@ -6,10 +6,9 @@
 
 #include <torchless/tensor.h>
 
-float Tensor::get(const std::vector<size_t> &indices) {
-    return std::visit([&](auto &tensor_impl) -> float { return tensor_impl.get(indices); },
-                      tensor_);
-}
+//
+// Factories
+//
 
 Tensor::Tensor(const std::vector<float> &values, Device device)
     : device_(device), tensor_(tensor_from_data(values, device)) {}
@@ -41,6 +40,8 @@ Tensor Tensor::rand(const Shape &shape, std::mt19937 rng, Device device) {
 
 Tensor::Tensor(const Shape &shape, Device device, EmptyTag)
     : device_(device), tensor_(tensor_from_shape(shape, device)) {}
+
+Tensor::Tensor(TensorVariant &tensor, Device device) : device_(device), tensor_(tensor) {}
 
 TensorVariant Tensor::tensor_from_shape(const Shape &shape, Device device) {
     switch (device) {
@@ -98,6 +99,26 @@ TensorVariant Tensor::random_tensor(const Shape &shape, std::mt19937 rng, Device
     }
 }
 
+//
+// Operators
+//
+Tensor Tensor::log() const {
+    auto new_tensor =
+        std::visit([&](auto &tensor_impl) -> TensorVariant { return tensor_impl.log(); }, tensor_);
+    return Tensor(new_tensor, device_);
+}
+
+Tensor Tensor::exp() const {
+    auto new_tensor =
+        std::visit([&](auto &tensor_impl) -> TensorVariant { return tensor_impl.exp(); }, tensor_);
+    return Tensor(new_tensor, device_);
+}
+
+float Tensor::get(const std::vector<size_t> &indices) {
+    return std::visit([&](auto &tensor_impl) -> float { return tensor_impl.get(indices); },
+                      tensor_);
+}
+
 std::ostream &operator<<(std::ostream &os, const Tensor &t) {
     os << "Tensor(\n\tDevice: ";
     switch (t.device_) {
@@ -113,6 +134,26 @@ std::ostream &operator<<(std::ostream &os, const Tensor &t) {
         return os;
     default:
         throw std::runtime_error("&operator: Unknown device");
+    }
+}
+
+Tensor Tensor::to(Device dev) const {
+    if (dev == device_)
+        return *this;
+
+    switch (dev) {
+    case Device::CPU: {
+        GPUTensor gpu_tensor = std::get<GPUTensor>(tensor_);
+        TensorVariant m_cpu_tensor = gpu_tensor.toCPU();
+        return Tensor(m_cpu_tensor, Device::CPU);
+    }
+    case Device::GPU: {
+        CPUTensor cpu_tensor = std::get<CPUTensor>(tensor_);
+        TensorVariant m_gpu_tensor = cpu_tensor.toGPU();
+        return Tensor(m_gpu_tensor, Device::GPU);
+    }
+    default:
+        throw std::runtime_error("to: Unknown device");
     }
 }
 

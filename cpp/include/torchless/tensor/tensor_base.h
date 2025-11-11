@@ -8,7 +8,6 @@ class BaseTensor {
     Shape shape_;
 
     BaseTensor(const Shape &shape_);
-
     virtual ~BaseTensor() = default;
     virtual float get(const std::vector<size_t> &indices) = 0;
 };

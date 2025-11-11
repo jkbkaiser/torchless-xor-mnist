@@ -42,7 +42,7 @@ std::ostream &operator<<(std::ostream &os, const CPUTensor &t) {
     return os;
 }
 
-GPUTensor CPUTensor::toGPU() {
+GPUTensor CPUTensor::toGPU() const {
     GPUTensor t(shape_);
 
     cudaMemcpy(t.data_, data_.data(), data_.size() * sizeof(float), cudaMemcpyHostToDevice);

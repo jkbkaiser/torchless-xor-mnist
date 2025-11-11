@@ -61,20 +61,7 @@ GPUTensor GPUTensor::rand(const Shape &shape, std::mt19937 &rng) {
     return CPUTensor::rand(shape, rng).toGPU();
 }
 
-float GPUTensor::get(const std::vector<size_t> &indices) {
-    size_t idx = 0;
-    size_t stride = 1;
 
-    // flatten indices to 1D index
-    for (int i = indices.size() - 1; i >= 0; --i) {
-        idx += indices[i] * stride;
-        stride *= shape_.dims_[i];
-    }
-
-    float value;
-    cudaMemcpy(&value, data_ + idx, sizeof(float), cudaMemcpyDeviceToHost);
-    return value;
-}
 
 // Destructor
 // GPUTensor::~GPUTensor() = default;
@@ -96,9 +83,9 @@ float GPUTensor::get(const std::vector<size_t> &indices) {
 //     return *this;
 // }
 
-// Stream operator
-std::ostream &operator<<(std::ostream &os, const GPUTensor &/*t*/) {
-    os << "<GPUTensor>";
-    return os;
-}
+// // Stream operator
+// std::ostream &operator<<(std::ostream &os, const GPUTensor &/*t*/) {
+//     os << "<GPUTensor>";
+//     return os;
+// }
 

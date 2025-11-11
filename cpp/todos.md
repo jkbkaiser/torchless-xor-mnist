@@ -1,4 +1,3 @@
-- [ ] Add functions like log, exp, etc
 - [ ] Impl operators
 - [ ] Impl linalg functions
 - [ ] Impl MLP
