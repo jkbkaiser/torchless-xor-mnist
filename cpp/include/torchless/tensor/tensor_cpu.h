@@ -25,13 +25,22 @@ class CPUTensor : public BaseTensor {
     // Ops
     CPUTensor log() const;
     CPUTensor exp() const;
+    CPUTensor operator-() const;
+
+    CPUTensor operator+(float scalar) const;
+    CPUTensor operator-(float scalar) const;
+    CPUTensor operator*(float scalar) const;
+    CPUTensor operator/(float scalar) const;
+
+    CPUTensor operator==(const CPUTensor &other) const;
 
     float get(const std::vector<size_t> &indices);
     GPUTensor toGPU() const;
 
-  private:
     CPUTensor map(const std::function<float(float)> &func) const;
 };
+
+CPUTensor operator/(float scalar, const CPUTensor &tensor);
 
 std::ostream &operator<<(std::ostream &os, const CPUTensor &t);
 

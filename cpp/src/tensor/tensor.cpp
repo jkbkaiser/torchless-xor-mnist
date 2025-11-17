@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 #include <random>
 #include <stdexcept>
@@ -5,6 +6,12 @@
 #include <vector>
 
 #include <torchless/tensor.h>
+
+//
+// Helpers
+//
+
+void same_device_check(Tensor a, Tensor b) { assert(a.device_ == b.device_); }
 
 //
 // Factories
@@ -102,21 +109,98 @@ TensorVariant Tensor::random_tensor(const Shape &shape, std::mt19937 rng, Device
 //
 // Operators
 //
+
 Tensor Tensor::log() const {
-    auto new_tensor =
+    TensorVariant new_tensor =
         std::visit([&](auto &tensor_impl) -> TensorVariant { return tensor_impl.log(); }, tensor_);
     return Tensor(new_tensor, device_);
 }
 
 Tensor Tensor::exp() const {
-    auto new_tensor =
+    TensorVariant new_tensor =
         std::visit([&](auto &tensor_impl) -> TensorVariant { return tensor_impl.exp(); }, tensor_);
     return Tensor(new_tensor, device_);
+}
+
+Tensor Tensor::operator-() const {
+    TensorVariant new_tensor =
+        std::visit([&](auto &tensor_impl) -> TensorVariant { return -tensor_impl; }, tensor_);
+    return Tensor(new_tensor, device_);
+}
+
+Tensor Tensor::operator+(float scalar) const {
+    TensorVariant new_tensor = std::visit(
+        [&](auto &tensor_impl) -> TensorVariant { return tensor_impl + scalar; }, tensor_);
+    return Tensor(new_tensor, device_);
+}
+
+Tensor Tensor::operator-(float scalar) const {
+    TensorVariant new_tensor = std::visit(
+        [&](auto &tensor_impl) -> TensorVariant { return tensor_impl - scalar; }, tensor_);
+    return Tensor(new_tensor, device_);
+}
+
+Tensor Tensor::operator*(float scalar) const {
+    TensorVariant new_tensor = std::visit(
+        [&](auto &tensor_impl) -> TensorVariant { return tensor_impl * scalar; }, tensor_);
+    return Tensor(new_tensor, device_);
+}
+
+Tensor Tensor::operator/(float scalar) const {
+    TensorVariant new_tensor = std::visit(
+        [&](auto &tensor_impl) -> TensorVariant { return tensor_impl / scalar; }, tensor_);
+    return Tensor(new_tensor, device_);
+}
+
+Tensor Tensor::operator==(const Tensor &other) const {
+    same_device_check(*this, other);
+
+    switch (device_) {
+    case Device::CPU: {
+        const CPUTensor &a = std::get<CPUTensor>(tensor_);
+        const CPUTensor &b = std::get<CPUTensor>(other.tensor_);
+        TensorVariant result_variant = a == b;
+        return Tensor(result_variant, device_);
+    }
+    case Device::GPU: {
+        const GPUTensor &a = std::get<GPUTensor>(tensor_);
+        const GPUTensor &b = std::get<GPUTensor>(other.tensor_);
+        TensorVariant result_variant = a == b;
+        return Tensor(result_variant, device_);
+    }
+    default:
+        throw std::runtime_error("operator==: Unknown device");
+    }
 }
 
 float Tensor::get(const std::vector<size_t> &indices) {
     return std::visit([&](auto &tensor_impl) -> float { return tensor_impl.get(indices); },
                       tensor_);
+}
+
+Tensor operator+(float scalar, const Tensor &tensor) {
+    TensorVariant new_tensor = std::visit(
+        [&](auto &tensor_impl) -> TensorVariant { return tensor_impl + scalar; }, tensor.tensor_);
+    return Tensor(new_tensor, tensor.device_);
+}
+
+Tensor operator-(float scalar, const Tensor &tensor) {
+    TensorVariant new_tensor =
+        std::visit([&](auto &tensor_impl) -> TensorVariant { return (-tensor_impl) + scalar; },
+                   tensor.tensor_);
+    return Tensor(new_tensor, tensor.device_);
+}
+
+Tensor operator*(float scalar, const Tensor &tensor) {
+    TensorVariant new_tensor = std::visit(
+        [&](auto &tensor_impl) -> TensorVariant { return tensor_impl * scalar; }, tensor.tensor_);
+    return Tensor(new_tensor, tensor.device_);
+}
+
+Tensor operator/(float scalar, const Tensor &tensor) {
+    TensorVariant new_tensor = std::visit(
+        [&](auto &tensor_impl) -> TensorVariant { return scalar / tensor_impl; }, tensor.tensor_);
+    return Tensor(new_tensor, tensor.device_);
 }
 
 std::ostream &operator<<(std::ostream &os, const Tensor &t) {
@@ -185,63 +269,12 @@ Tensor Tensor::to(Device dev) const {
 //     return result;
 // }
 
-// Tensor::Tensor(const std::vector<size_t> &shape_) : shape(shape_) {
-//     size_t size = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>());
-//     data.resize(size);
-// }
-//
-//
 // std::ostream &operator<<(std::ostream &os, const Tensor &t) {
 //     int rows = 10;
 //     int dotted_rows = 3;
 //     os << std::fixed << std::setprecision(3);
 //     print_recursive(os, t.data, t.shape, 0, 0, rows, dotted_rows);
 //     return os;
-// }
-//
-// Tensor Tensor::from_vec(const std::vector<std::vector<float>> &vec) {
-//     Tensor t({vec.size(), vec[0].size()});
-//
-//     for (size_t i = 0; i < vec.size(); ++i) {
-//         for (size_t j = 0; j < vec[i].size(); ++j) {
-//             t.at({i, j}) = vec[i][j];
-//         }
-//     }
-//
-//     return t;
-// }
-//
-// Tensor Tensor::from_vec(const std::vector<float> &vec, const std::vector<size_t> &shape_) {
-//     Tensor t(shape_);
-//     t.data = vec;
-//     return t;
-// }
-//
-// Tensor Tensor::from_vec(const std::vector<float> &vec) {
-//     Tensor t({vec.size()});
-//
-//     for (size_t i = 0; i < vec.size(); ++i) {
-//         t.at({i}) = vec[i];
-//     }
-//
-//     return t;
-// }
-//
-// Tensor Tensor::filled(const std::vector<size_t> &shape, float value) {
-//     Tensor t(shape);
-//     std::fill(t.data.begin(), t.data.end(), value);
-//     return t;
-// }
-//
-// Tensor Tensor::zeros(const std::vector<size_t> &shape) { return Tensor::filled(shape, 0.0); }
-//
-// Tensor Tensor::ones(const std::vector<size_t> &shape) { return Tensor::filled(shape, 1.0); }
-//
-// Tensor Tensor::rand(const std::vector<size_t> &shape, std::mt19937 rng) {
-//     Tensor t(shape);
-//     std::uniform_real_distribution<float> d(0.0, 1.0);
-//     std::generate(t.data.begin(), t.data.end(), std::bind(d, rng));
-//     return t;
 // }
 //
 // Tensor Tensor::transpose() const {
@@ -293,20 +326,6 @@ Tensor Tensor::to(Device dev) const {
 //     return Tensor::filled({1}, max);
 // }
 //
-// Tensor Tensor::log() const {
-//     Tensor result(this->shape);
-//     std::transform(this->data.begin(), this->data.end(), result.data.begin(),
-//                    [](float x) { return std::log(x); });
-//     return result;
-// }
-//
-// Tensor Tensor::exp() const {
-//     Tensor result(this->shape);
-//     std::transform(this->data.begin(), this->data.end(), result.data.begin(),
-//                    [](float x) { return std::exp(x); });
-//     return result;
-// }
-//
 // Tensor Tensor::sum() const {
 //     float sum = 0.0;
 //     for (size_t i = 0; i < data.size(); ++i) {
@@ -343,21 +362,6 @@ Tensor Tensor::to(Device dev) const {
 //         stride *= shape[i];
 //     }
 //     return data[offset];
-// }
-//
-// Tensor Tensor::operator==(Tensor other) const {
-//     if (this->shape != other.shape) {
-//         throw std::runtime_error("Tensors must have the same shape to be compared.");
-//     };
-//
-//     Tensor result(this->shape);
-//     result.data = this->data;
-//
-//     for (size_t i = 0; i < this->shape[0]; ++i) {
-//         result.data[i] = this->data[i] == other.data[i];
-//     }
-//
-//     return result;
 // }
 //
 // Tensor Tensor::dot(Tensor other) const {

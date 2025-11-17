@@ -2,3 +2,4 @@
 - [ ] Impl linalg functions
 - [ ] Impl MLP
 - [ ] Impl examples with GPU
+- [ ] Create flake

@@ -29,6 +29,7 @@ class Tensor {
     // Factories
     Tensor(const std::vector<float> &values, Device device = Device::CPU);
     Tensor(const std::vector<std::vector<float>> &values, Device device = Device::CPU);
+    Tensor(TensorVariant &tensor, Device device);
     static Tensor empty(const Shape &shape, Device device = Device::CPU);
     static Tensor zeros(const Shape &shape, Device device = Device::CPU);
     static Tensor ones(const Shape &shape, Device device = Device::CPU);
@@ -38,19 +39,18 @@ class Tensor {
     // Operators
     Tensor log() const;
     Tensor exp() const;
+    Tensor operator-() const;
 
-    // Tensor operator-() const;
-    // Tensor operator==(Tensor other) const;
-    //
-    // Tensor operator+(double scalar) const;
-    // Tensor operator-(double scalar) const;
-    // Tensor operator*(double scalar) const;
-    // Tensor operator/(double scalar) const;
-    //
+    Tensor operator+(float scalar) const;
+    Tensor operator-(float scalar) const;
+    Tensor operator*(float scalar) const;
+    Tensor operator/(float scalar) const;
+
     // Tensor operator+(Tensor other) const;
     // Tensor operator*(Tensor other) const;
     // Tensor operator-(Tensor other) const;
     // Tensor operator/(Tensor other) const;
+    Tensor operator==(const Tensor &other) const;
 
     float get(const std::vector<size_t> &indices);
     friend std::ostream &operator<<(std::ostream &os, const CPUTensor &t);
@@ -60,7 +60,6 @@ class Tensor {
 
   private:
     Tensor(const Shape &shape, Device device, EmptyTag);
-    Tensor(TensorVariant &tensor, Device device);
     Tensor(const Shape &shape, float value, Device device);
     Tensor(const Shape &shape, std::mt19937 rng, Device device);
 
@@ -71,6 +70,11 @@ class Tensor {
     static TensorVariant filled_tensor(const Shape &shape, float value, Device device);
     static TensorVariant random_tensor(const Shape &shape, std::mt19937 rng, Device device);
 };
+
+Tensor operator+(float scalar, const Tensor &tensor);
+Tensor operator-(float scalar, const Tensor &tensor);
+Tensor operator*(float scalar, const Tensor &tensor);
+Tensor operator/(float scalar, const Tensor &tensor);
 
 std::ostream &operator<<(std::ostream &os, const Tensor &t);
 

@@ -28,13 +28,25 @@ class GPUTensor : public BaseTensor {
     // Ops
     GPUTensor log() const;
     GPUTensor exp() const;
+    GPUTensor operator-() const;
+
+    GPUTensor operator+(float scalar) const;
+    GPUTensor operator-(float scalar) const;
+    GPUTensor operator*(float scalar) const;
+    GPUTensor operator/(float scalar) const;
+
+    GPUTensor operator==(const GPUTensor &other) const;
 
     float get(const std::vector<size_t> &indices);
     CPUTensor toCPU() const;
 
+    template <typename Func> GPUTensor map(const Func func) const;
+
   private:
-    template <typename Func> GPUTensor map(Func func) const;
+    template <typename Func> GPUTensor map2(const GPUTensor &other, const Func func) const;
 };
+
+GPUTensor operator/(float scalar, const GPUTensor &tensor);
 
 std::ostream &operator<<(std::ostream &os, const GPUTensor &t);
 

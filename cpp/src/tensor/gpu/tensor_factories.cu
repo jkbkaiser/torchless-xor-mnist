@@ -15,12 +15,17 @@ GPUTensor::GPUTensor(const Shape &shape)
 GPUTensor::GPUTensor(const std::vector<float> &values)
     : BaseTensor({values.size()}), size_(values.size()) {
     cudaMalloc(&data_, size_ * sizeof(float));
-    cudaMemcpy(
+    cudaError_t err =  cudaMemcpy(
         data_,
         values.data(),
         size_ * sizeof(float),
         cudaMemcpyHostToDevice
     );
+
+    if (err != cudaSuccess) {
+        std::cerr << "cudaMalloc failed: " << cudaGetErrorString(err) << std::endl;
+        return;
+    }
 }
 
 GPUTensor::GPUTensor(const std::vector<std::vector<float>> &values)
@@ -34,12 +39,17 @@ GPUTensor::GPUTensor(const std::vector<std::vector<float>> &values)
     for (auto &row : values)
         flat.insert(flat.end(), row.begin(), row.end());
 
-    cudaMemcpy(
+    cudaError_t err = cudaMemcpy(
         data_,
         flat.data(),
         size_ * sizeof(float),
         cudaMemcpyHostToDevice
     );
+
+    if (err != cudaSuccess) {
+        std::cerr << "cudaMalloc failed: " << cudaGetErrorString(err) << std::endl;
+        return;
+    }
 }
 
 __global__ void fill_kernel(float* data, size_t size, float value) {

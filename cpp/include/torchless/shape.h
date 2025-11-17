@@ -23,6 +23,10 @@ struct Shape {
 
     size_t &operator[](size_t i) { return dims_[i]; }
     const size_t &operator[](size_t i) const { return dims_[i]; }
+
+    bool operator==(const Shape &other) const { return dims_ == other.dims_; }
+
+    bool operator!=(const Shape &other) const { return !(*this == other); }
 };
 
 #endif

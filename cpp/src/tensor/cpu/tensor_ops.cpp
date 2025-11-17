@@ -42,6 +42,44 @@ CPUTensor CPUTensor::exp() const {
     return this->map([](float x) { return std::exp(x); });
 }
 
+CPUTensor CPUTensor::operator-() const {
+    return this->map([](float x) { return -x; });
+}
+
+CPUTensor CPUTensor::operator+(float scalar) const {
+    return this->map([scalar](float x) { return x + scalar; });
+}
+
+CPUTensor CPUTensor::operator-(float scalar) const {
+    return this->map([scalar](float x) { return x - scalar; });
+}
+
+CPUTensor CPUTensor::operator*(float scalar) const {
+    return this->map([scalar](float x) { return x * scalar; });
+}
+
+CPUTensor CPUTensor::operator/(float scalar) const {
+    return this->map([scalar](float x) { return x / scalar; });
+}
+
+CPUTensor CPUTensor::operator==(const CPUTensor &other) const {
+    if (shape_ != other.shape_) {
+        throw std::runtime_error("Tensors must have the same shape to be compared.");
+    };
+
+    CPUTensor result(shape_);
+
+    for (size_t i = 0; i < shape_[0]; ++i) {
+        result.data_[i] = data_[i] == other.data_[i];
+    }
+
+    return result;
+}
+
+CPUTensor operator/(float scalar, const CPUTensor &tensor) {
+    return tensor.map([scalar](float x) { return scalar / x; });
+}
+
 // Tensor Tensor::operator+(double scalar) const {
 //     return this->map([scalar](double x) { return x + scalar; });
 // }
