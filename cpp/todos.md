@@ -1,5 +1,9 @@
-- [ ] Impl operators
+- [ ] Finish tensor ops
+    - Broadcasting
 - [ ] Impl linalg functions
 - [ ] Impl MLP
 - [ ] Impl examples with GPU
 - [ ] Create flake
+- [ ] Potential optimizations + deepdive cuda
+- [ ] Cleanup docs
+- [ ] Write blog post

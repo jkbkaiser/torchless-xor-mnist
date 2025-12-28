@@ -7,6 +7,7 @@ struct Shape {
     std::vector<size_t> dims_;
 
     Shape(std::initializer_list<size_t> list) : dims_(list) {}
+    Shape(const std::vector<size_t> &vec) : dims_(vec) {}
 
     auto begin() { return dims_.begin(); }
     auto end() { return dims_.end(); }

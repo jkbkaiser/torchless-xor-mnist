@@ -36,6 +36,10 @@ class Tensor {
     static Tensor filled(const Shape &shape, float value, Device device = Device::CPU);
     static Tensor rand(const Shape &shape, std::mt19937 rng, Device device = Device::CPU);
 
+    // Indexing stuff
+    std::vector<size_t> shape() const;
+    float get(const std::vector<size_t> &indices);
+
     // Operators
     Tensor log() const;
     Tensor exp() const;
@@ -46,13 +50,12 @@ class Tensor {
     Tensor operator*(float scalar) const;
     Tensor operator/(float scalar) const;
 
-    // Tensor operator+(Tensor other) const;
-    // Tensor operator*(Tensor other) const;
-    // Tensor operator-(Tensor other) const;
-    // Tensor operator/(Tensor other) const;
+    Tensor operator+(const Tensor &other) const;
+    // Tensor operator*(const Tensor other) const;
+    // Tensor operator-(const Tensor other) const;
+    // Tensor operator/(const Tensor other) const;
     Tensor operator==(const Tensor &other) const;
 
-    float get(const std::vector<size_t> &indices);
     friend std::ostream &operator<<(std::ostream &os, const CPUTensor &t);
 
     // Device

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <torchless/tensor.h>
+#include <torchless/utils.h>
 
 //
 // Helpers
@@ -147,9 +148,34 @@ Tensor Tensor::operator*(float scalar) const {
 }
 
 Tensor Tensor::operator/(float scalar) const {
+    if (scalar == 0.0) {
+        throw std::runtime_error("Division by zero.");
+    }
+
     TensorVariant new_tensor = std::visit(
         [&](auto &tensor_impl) -> TensorVariant { return tensor_impl / scalar; }, tensor_);
     return Tensor(new_tensor, device_);
+}
+
+Tensor Tensor::operator+(const Tensor &other) const {
+    same_device_check(*this, other);
+
+    switch (device_) {
+    case Device::CPU: {
+        const CPUTensor &a = std::get<CPUTensor>(tensor_);
+        const CPUTensor &b = std::get<CPUTensor>(other.tensor_);
+        TensorVariant result_variant = a + b;
+        return Tensor(result_variant, device_);
+    }
+    case Device::GPU: {
+        const GPUTensor &a = std::get<GPUTensor>(tensor_);
+        const GPUTensor &b = std::get<GPUTensor>(other.tensor_);
+        TensorVariant result_variant = a + b;
+        return Tensor(result_variant, device_);
+    }
+    default:
+        throw std::runtime_error("operator==: Unknown device");
+    }
 }
 
 Tensor Tensor::operator==(const Tensor &other) const {
@@ -171,6 +197,12 @@ Tensor Tensor::operator==(const Tensor &other) const {
     default:
         throw std::runtime_error("operator==: Unknown device");
     }
+}
+
+std::vector<size_t> Tensor::shape() const {
+    return std::visit(
+        [&](auto &tensor_impl) -> std::vector<size_t> { return tensor_impl.shape_.dims_; },
+        tensor_);
 }
 
 float Tensor::get(const std::vector<size_t> &indices) {

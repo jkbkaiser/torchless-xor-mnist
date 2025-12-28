@@ -35,9 +35,11 @@ class GPUTensor : public BaseTensor {
     GPUTensor operator*(float scalar) const;
     GPUTensor operator/(float scalar) const;
 
+    GPUTensor operator+(const GPUTensor &other) const;
     GPUTensor operator==(const GPUTensor &other) const;
 
-    float get(const std::vector<size_t> &indices);
+    float get(const std::vector<size_t> &indices) const;
+    void set(const std::vector<size_t> &indices, float val);
     CPUTensor toCPU() const;
 
     template <typename Func> GPUTensor map(const Func func) const;
