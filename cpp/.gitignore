@@ -10,7 +10,7 @@ build/
 # Executables
 xor
 mnist
-tests
+tests/tests
 run_tests
 
 # CMake cache
