@@ -13,8 +13,8 @@ def relu(x):
     return np.maximum(0, x)
 
 
-def visualize_func(func, filename, range: Tuple[int, int]):
-    x = np.linspace(*range, 100)
+def visualize_func(func, filename, x_range: Tuple[int, int]):
+    x = np.linspace(*x_range, 100)
     y = func(x)
 
     fig, ax = plt.subplots(figsize=(4, 2))
@@ -31,7 +31,6 @@ def visualize_func(func, filename, range: Tuple[int, int]):
 
     ax.set_yticks([0.5, 1.0])
     ax.set_yticklabels(["0.5", "1"])
-    # ax.annotate("0", xy=(0, 0), xytext=(-0.5, -0.1), textcoords='data', ha='center')
 
     ax.plot(x, y, color="black", linewidth=0.8)
 

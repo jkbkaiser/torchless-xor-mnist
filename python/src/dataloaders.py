@@ -3,7 +3,7 @@ from typing import Literal
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.constants import (MNIST_TEST_IMAGES, MNIST_TEST_LABELS,
+from src.constants import (IMG_DIR, MNIST_TEST_IMAGES, MNIST_TEST_LABELS,
                            MNIST_TRAIN_IMAGES, MNIST_TRAIN_LABELS)
 
 
@@ -78,6 +78,8 @@ class MNISTDataLoader:
 
 
 if __name__ == "__main__":
+    IMG_DIR.mkdir(parents=True, exist_ok=True)
+
     dl = MNISTDataLoader(batch_size=16, rng=np.random.default_rng(seed=3), split="TRAIN")
     samples, _ = next(iter(dl))
 
@@ -90,4 +92,4 @@ if __name__ == "__main__":
         ax[i // 4, i % 4].set_xticks([])
         ax[i // 4, i % 4].set_yticks([])
 
-    fig.savefig("figs/mnist_train_samples.png")
+    fig.savefig(IMG_DIR / "mnist_train_samples.png")

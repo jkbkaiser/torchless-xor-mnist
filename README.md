@@ -1,80 +1,78 @@
 # Torchless XOR/MNIST
 
-A from-scratch neural network library implemented in C++ with CUDA support. This project demonstrates a Multi-Layer Perceptron applied to the XOR problem and MNIST digit classification, built without external ML frameworks.
+A from-scratch neural network library implemented in pure NumPy — no ML frameworks. This project demonstrates a Multi-Layer Perceptron with hand-coded backpropagation applied to the XOR problem and MNIST digit classification.
 
 A detailed discussion of the mathematical derivations and implementation can be found on my [blog](https://jakobkaiser.com/blog/torchless-xor-mnist/).
 
 ## Features
 
-- **Pure C++23** implementation with no dependencies (except CUDA for GPU support)
-- **Custom tensor library** with broadcasting and matrix operations
-- **Manual backpropagation**: Hand-coded gradient computation for all operations
-- **Neural network modules**: Linear layers, ReLU activation, MLP
-- **Loss functions**: Cross-entropy and binary cross-entropy
-- **Python prototype** for validation
+- **Manual backpropagation**: hand-coded gradient computation for all operations
+- **Neural network modules**: linear layers, ReLU/Tanh activations, MLP
+- **Loss functions**: cross-entropy and binary cross-entropy
+- **Data loaders**: noisy XOR generator and MNIST (IDX format) loader
+- **Visualizations**: training curves, decision boundaries, learned weights, neuron activations
+
+> A C++/CUDA implementation of the same ideas lives on the [`cpp` branch](../../tree/cpp).
 
 ## Project Structure
 
 ```
 torchless-xor/
-├── cpp/                    # C++ implementation (primary)
-├── python/                 # Python reference implementation
-└── data/                   # Datasets (MNIST)
+├── python/
+│   └── src/
+│       ├── modules.py      # Linear, ReLU, Tanh, MLP with forward/backward
+│       ├── losses.py       # Cross-entropy and binary cross-entropy
+│       ├── dataloaders.py  # XOR and MNIST data loaders
+│       ├── xor.py          # XOR training script
+│       ├── mnist.py        # MNIST training script
+│       └── mnist_capacity.py  # Model capacity vs. accuracy experiment
+└── data/                   # Datasets (MNIST, not included — see below)
 ```
 
 ## Quick Start
-
-### C++ Implementation
-
-**Requirements:**
-- C++23 compatible compiler (GCC 12+, Clang 15+)
-- CMake 3.18+
-- CUDA Toolkit (optional, for GPU support)
-
-**Build and run:**
-```bash
-cd cpp
-mkdir build && cd build
-cmake ..
-make
-
-# Run examples
-./xor
-./mnist
-
-# Run tests
-./tests
-```
-
-**Build with CUDA:**
-```bash
-cmake -DUSE_CUDA=ON ..
-make
-```
-
-### Python Prototype
 
 **Requirements:**
 - Python 3.13+
 - Dependencies managed via [uv](https://github.com/astral-sh/uv)
 
-**Run:**
+**Setup:**
 ```bash
-cd prototype
+cd python
 uv sync
-
-# Execute training scripts
-python -m src.xor
-python -m src.mnist
 ```
+
+**Run XOR:**
+```bash
+uv run python -m src.xor
+```
+
+**Run MNIST:**
+
+Download the MNIST dataset (IDX format, e.g. from [Kaggle](https://www.kaggle.com/datasets/hojjatk/mnist-dataset)) and place the files in `data/mnist/`:
+
+```
+data/mnist/
+├── train-images.idx3-ubyte
+├── train-labels.idx1-ubyte
+├── t10k-images.idx3-ubyte
+└── t10k-labels.idx1-ubyte
+```
+
+Then:
+```bash
+uv run python -m src.mnist
+uv run python -m src.mnist_capacity
+```
+
+Generated plots are written to `python/figs/`.
 
 ## Examples
 
 ### XOR Problem
-Trains a simple MLP to learn the XOR function with noise tolerance.
+Trains a simple MLP to learn the XOR function with noise tolerance, and plots the learned decision boundary.
 
 ### MNIST Classification
-Trains a neural network on the MNIST handwritten digit dataset.
+Trains a neural network on the MNIST handwritten digit dataset, visualizes the learned first-layer weights, and explores how test accuracy scales with hidden-layer size.
 
 ## Blog
 

@@ -63,18 +63,7 @@ if __name__ == "__main__":
 
     print(f"Test accuracy: {avg_acc / len(train_dl):.2f}")
 
-    x, y = next(iter(train_dl))
-    first_sample = x[0]
-    first_label = y[0]
-
-    logits = model.forward(first_sample.reshape(1, 784))
-    loss, grads = cross_entropy_loss(logits, first_label.reshape(1, 1))
-
-    model.zero_grad()
-    model.backward(grads)
-
     first_layer = model.layers[0]
-
 
     # Visualize neurons
     fig, axes = plt.subplots(3, 3, figsize=(12, 12))
@@ -90,11 +79,11 @@ if __name__ == "__main__":
         w = np.reshape(w, (28, 28))
         ax = axes[i // 3, i % 3]
         ax.patch.set_alpha(0.0)
-        im = ax.imshow(w, cmap='gray', vmin=vmin, vmax=vmax)
+        ax.imshow(w, cmap='gray', vmin=vmin, vmax=vmax)
         ax.axis('off')
 
     fig.subplots_adjust(wspace=0.05, hspace=0.05)
-    plt.savefig(IMG_DIR / f"weights_grid.png", dpi=300, transparent=True, bbox_inches='tight')
+    plt.savefig(IMG_DIR / "weights_grid.png", dpi=300, transparent=True, bbox_inches='tight')
 
 
     # Compute average activation per digit class for each neuron
@@ -142,5 +131,5 @@ if __name__ == "__main__":
         ax.set_ylim(0, mean_activations.max() * 1.1)
 
     fig.subplots_adjust(wspace=0.3, hspace=0.3)
-    plt.savefig(IMG_DIR / f"neuron_digit_activations.png", dpi=300, transparent=True, bbox_inches='tight')
+    plt.savefig(IMG_DIR / "neuron_digit_activations.png", dpi=300, transparent=True, bbox_inches='tight')
     plt.close()
