@@ -10,11 +10,11 @@
 // Tensor sigmoid(const Tensor &x) { return 1 / (1 + (-x).exp()); }
 
 int main() {
-    // int seed = 0;
-    // int num_epochs = 100;
-    // int batch_size = 64;
-    // double lr = 0.05;
-    // double noise_std = 0.1;
+    int seed = 0;
+    int num_epochs = 100;
+    int batch_size = 64;
+    double lr = 0.05;
+    double noise_std = 0.1;
 
     //
     // CPUTensor t(shape);

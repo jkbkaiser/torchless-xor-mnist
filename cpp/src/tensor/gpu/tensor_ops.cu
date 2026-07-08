@@ -72,4 +72,6 @@ GPUTensor operator/(float scalar, const GPUTensor &tensor) {
     return tensor.map([scalar] __device__ (float x) { return scalar / x; });
 }
 
-GPUTensor GPUTensor::operator+(const GPUTensor &other) const { return *this; }
+GPUTensor GPUTensor::operator+(const GPUTensor &other) const {
+    return *this + 1;
+}
